@@ -5,7 +5,6 @@ import numpy as np
 # Prologue: setting up functions for basic python methodology
 ###
 
-
 def unique_list(input_list: list):
     unique = []
     for item in input_list:
@@ -14,14 +13,16 @@ def unique_list(input_list: list):
 
     return unique
 
-
 ###
 # Section 1: Defining key elements of the cards
 ###
 
+#shuffle a deck
+def shuffle_deck(full_deck: list):
+    shuffled_deck = random.shuffle(full_deck)
+    return shuffled_deck
+
 # Deck of cards
-
-
 def fresh_deck():
     suits = ["❤️", "♦️", "♠️", "♣️"]
     values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', "J", "Q", "K", "A"]
@@ -30,11 +31,11 @@ def fresh_deck():
         for value in values:
             deck.append((value, suit))
 
+    deck = shuffle_deck(deck)
+
     return deck
 
 # Displaying your hole cards (referring to as pocket)
-
-
 def format_card(card_tup):
     suit = card_tup[1]
     value = card_tup[0]
@@ -52,7 +53,6 @@ def format_card(card_tup):
 
     return top_edge, top_row, mid_row, mid_row, mid_row, bottom_row, bottom_edge
 
-
 def print_single_card(card_tup):
     a, b, c, d, e, f, g = format_card(card_tup)
     print(a)
@@ -62,7 +62,6 @@ def print_single_card(card_tup):
     print(e)
     print(f)
     print(g)
-
 
 def print_pocket(pocket: list):
     card_tup_1 = pocket[0]
@@ -79,8 +78,7 @@ def print_pocket(pocket: list):
     print(f1, f2)
     print(g1, g2)
 
-
-# Displaying the central cards
+# Displaying the table cards
 def print_flop(flop: list):
     card_1 = flop[0]
     card_2 = flop[1]
@@ -97,7 +95,6 @@ def print_flop(flop: list):
     print("     ", e1, e2, e3)
     print("     ", f1, f2, f3)
     print("     ", g1, g2, g3)
-
 
 def print_turn(turn: list):
     card_1 = turn[0]
@@ -117,7 +114,6 @@ def print_turn(turn: list):
     print("     ", e1, e2, e3, e4)
     print("     ", f1, f2, f3, f4)
     print("     ", g1, g2, g3, g4)
-
 
 def print_river(river: list):
     card_1 = river[0]
@@ -140,20 +136,23 @@ def print_river(river: list):
     print("     ", f1, f2, f3, f4, f5)
     print("     ", g1, g2, g3, g4, g5)
 
+
 # burning cards
 
-
-def get_random_card(remaining_deck):
-    index = random.randint(0, len(remaining_deck) - 1)
-    card = remaining_deck.pop(index)
-    return card, remaining_deck
-
-
 def burn_card(remaining_deck: list, burnt_cards: list):
-    card, remaining_deck = get_random_card(remaining_deck)
+    card = remaining_deck[0]
+    remaining_deck = remaining_deck[1:]
     burnt_cards.append(card)
 
     return remaining_deck, burnt_cards
+
+#remove first card from deck
+
+def take_first_card(remaining_deck: list):
+    card = remaining_deck[0]
+    remaining_deck = remaining_deck[1:]
+
+    return card, remaining_deck
 
 # Initial Deal
 
@@ -163,11 +162,11 @@ def deal_pockets(remaining_deck: list, burnt_cards: list, still_in: list):
     remaining_deck, burnt_cards = burn_card(remaining_deck, burnt_cards)
     for i in still_in:
         pockets[i] = []
-        card, remaining_deck = get_random_card(remaining_deck)
+        card, remaining_deck = take_first_card(remaining_deck)
         pockets[i].append(card)
 
     for i in still_in:
-        card_2, remaining_deck = get_random_card(remaining_deck)
+        card_2, remaining_deck = take_first_card(remaining_deck)
         pockets[i].append(card_2)
 
     return remaining_deck, burnt_cards, pockets
@@ -177,9 +176,9 @@ def deal_pockets(remaining_deck: list, burnt_cards: list, still_in: list):
 
 def deal_flop(remaining_deck: list, burnt_cards: list):
     remaining_deck, burnt_cards = burn_card(remaining_deck, burnt_cards)
-    card_1, remaining_deck = get_random_card(remaining_deck)
-    card_2, remaining_deck = get_random_card(remaining_deck)
-    card_3, remaining_deck = get_random_card(remaining_deck)
+    card_1, remaining_deck = take_first_card(remaining_deck)
+    card_2, remaining_deck = take_first_card(remaining_deck)
+    card_3, remaining_deck = take_first_card(remaining_deck)
 
     flop = [card_1, card_2, card_3]
 
@@ -190,7 +189,7 @@ def deal_flop(remaining_deck: list, burnt_cards: list):
 
 def deal_turn(remaining_deck: list, burnt_cards: list, flop: list):
     remaining_deck, burnt_cards = burn_card(remaining_deck, burnt_cards)
-    card_4, remaining_deck = get_random_card(remaining_deck)
+    card_4, remaining_deck = take_first_card(remaining_deck)
 
     turn = [flop[0], flop[1], flop[2], card_4]
 
@@ -201,7 +200,7 @@ def deal_turn(remaining_deck: list, burnt_cards: list, flop: list):
 
 def deal_river(remaining_deck: list, burnt_cards: list, turn: list):
     remaining_deck, burnt_cards = burn_card(remaining_deck, burnt_cards)
-    card_5, remaining_deck = get_random_card(remaining_deck)
+    card_5, remaining_deck = take_first_card(remaining_deck)
 
     river = [turn[0], turn[1], turn[2], turn[3], card_5]
 
