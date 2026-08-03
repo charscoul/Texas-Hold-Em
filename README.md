@@ -56,6 +56,5 @@ I have separated my code into sections to allow easier explanations and understa
    - The main function is the way in which the code is run
 
 Other areas i wish to improve:
-- i think it may currently not allow comparison between three of a kind hands, but it should
 
 
