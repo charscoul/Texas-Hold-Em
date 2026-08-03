@@ -321,9 +321,9 @@ def find_type(hand: list):
         elif count_b == 4:
             return ("Four of a Kind", value_b)
         elif count_a == 3:
-            return ("Full House", value_a)
+            return ("Full House", value_a, value_b)
         elif count_b == 3:
-            return ("Full House", value_b)
+            return ("Full House", value_b, value_a)
         else:
             print(
                 "Error: 2 contained values but not full house or four of a kind, check code")
@@ -340,11 +340,11 @@ def find_type(hand: list):
         count_c = values.count(value_c)
 
         if count_a == 3:
-            return ("Three of a Kind", value_a)
+            return ("Three of a Kind", value_a, value_c, value_b)
         elif count_b == 3:
-            return ("Three of a Kind", value_b)
+            return ("Three of a Kind", value_b, value_c, value_a)
         elif count_c == 3:
-            return ("Three of a Kind", value_c)
+            return ("Three of a Kind", value_c, value_b, value_a)
 
         elif count_a == 2:
             if count_b == 2:
@@ -416,21 +416,45 @@ def score_hand(hand: list):
         description = "Royal Flush"
         return (description, type_score, np.nan, np.nan, np.nan, np.nan, np.nan)
 
-    elif hand_type in ["Straight Flush", "Four of a Kind", "Full House", "Straight", "Three of a Kind"]:
+    elif hand_type in ["Straight Flush", "Four of a Kind", "Straight"]:
         high_card_value = type_tuple[1]
         high_card_score = values_scored[high_card_value]
 
         high_card_described = values_described[high_card_value]
         if "Straight" in hand_type:
             description = f"{high_card_described} high {hand_type}"
-        elif hand_type == "Four of a Kind":
-            description = f"Four {high_card_described}'s"
-        elif hand_type == "Three of a Kind":
-            description = f"Three {high_card_described}'s"
         else:
-            description = f"{hand_type} with three {high_card_described}'s"
+            description = f"Four {high_card_described}'s"
 
         return (description, type_score, high_card_score, np.nan, np.nan, np.nan, np.nan)
+
+    elif hand_type == "Full House":
+        three_value = type_tuple[1]
+        two_value = type_tuple[2]
+
+        three_score = values_scored[three_value]
+        two_score = values_scored[two_value]
+
+        three_described = values_described[three_value]
+        two_described = values_described[two_value]
+
+        description = f"Full House with three {three_described}'s and two {two_described}'s"
+        return (description, type_score, three_score, two_score, np.nan, np.nan, np.nan)
+
+    elif hand_type == "Three of a Kind":
+        three_value = type_tuple[1]
+        higher_single_value = type_tuple[2]
+        lower_single_value = type_tuple[3]
+
+        three_score = values_scored[three_value]
+        higher_score = values_scored[higher_single_value]
+        lower_score = values_scored[lower_single_value]
+
+        three_described = values_described[three_value]
+
+        description = f"Three {three_described}'s"
+
+        return (description, type_score, three_score, higher_score, lower_score, np.nan, np.nan)
 
     elif hand_type in ["Flush", "High Card"]:
         values = type_tuple[1]
