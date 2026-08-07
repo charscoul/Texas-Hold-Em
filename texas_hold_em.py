@@ -21,14 +21,12 @@ def unique_list(input_list: list) -> list:
 
     return unique
 
-###
-# Section 1: Defining key elements of the cards
-###
 
-# shuffle a deck
+""" Section 1: Defining key elements of the cards """
 
 
-def shuffle_deck(full_deck: list):
+def shuffle_deck(full_deck: list, seed: int) -> list:
+    """shuffles an inputted list"""
     shuffled_deck = random.shuffle(full_deck)
     return shuffled_deck
 
