@@ -5,6 +5,7 @@ import numpy as np
 # Prologue: setting up functions for basic python methodology
 ###
 
+
 def unique_list(input_list: list):
     unique = []
     for item in input_list:
@@ -17,12 +18,16 @@ def unique_list(input_list: list):
 # Section 1: Defining key elements of the cards
 ###
 
-#shuffle a deck
+# shuffle a deck
+
+
 def shuffle_deck(full_deck: list):
     shuffled_deck = random.shuffle(full_deck)
     return shuffled_deck
 
 # Deck of cards
+
+
 def fresh_deck():
     suits = ["❤️", "♦️", "♠️", "♣️"]
     values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', "J", "Q", "K", "A"]
@@ -36,6 +41,8 @@ def fresh_deck():
     return deck
 
 # Displaying your hole cards (referring to as pocket)
+
+
 def format_card(card_tup):
     suit = card_tup[1]
     value = card_tup[0]
@@ -53,6 +60,7 @@ def format_card(card_tup):
 
     return top_edge, top_row, mid_row, mid_row, mid_row, bottom_row, bottom_edge
 
+
 def print_single_card(card_tup):
     a, b, c, d, e, f, g = format_card(card_tup)
     print(a)
@@ -62,6 +70,7 @@ def print_single_card(card_tup):
     print(e)
     print(f)
     print(g)
+
 
 def print_pocket(pocket: list):
     card_tup_1 = pocket[0]
@@ -79,6 +88,8 @@ def print_pocket(pocket: list):
     print(g1, g2)
 
 # Displaying the table cards
+
+
 def print_flop(flop: list):
     card_1 = flop[0]
     card_2 = flop[1]
@@ -95,6 +106,7 @@ def print_flop(flop: list):
     print("     ", e1, e2, e3)
     print("     ", f1, f2, f3)
     print("     ", g1, g2, g3)
+
 
 def print_turn(turn: list):
     card_1 = turn[0]
@@ -114,6 +126,7 @@ def print_turn(turn: list):
     print("     ", e1, e2, e3, e4)
     print("     ", f1, f2, f3, f4)
     print("     ", g1, g2, g3, g4)
+
 
 def print_river(river: list):
     card_1 = river[0]
@@ -146,7 +159,8 @@ def burn_card(remaining_deck: list, burnt_cards: list):
 
     return remaining_deck, burnt_cards
 
-#remove first card from deck
+# remove first card from deck
+
 
 def take_first_card(remaining_deck: list):
     card = remaining_deck[0]
@@ -1952,7 +1966,7 @@ def section_1_test():
 # basic_play_tournament()
 # test success based on
 
-def main():
+def main_game():
     print("It is recommended that you do not play this game on a dark background")
     print("")
     print("This is a basic version of texas hold 'em poker, where opponent bots take random betting actions based on the options available to them, with equal probability")
@@ -1961,4 +1975,5 @@ def main():
     basic_play_tournament()
 
 
-main()
+if __name__ == "__main__":
+    main_game()
