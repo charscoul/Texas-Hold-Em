@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from time import time
 
 ###
 # Prologue: setting up functions for basic python methodology
@@ -25,15 +26,15 @@ def unique_list(input_list: list) -> list:
 """ Section 1: Defining key elements of the cards """
 
 
-def shuffle_deck(full_deck: list, seed: int) -> list:
+def shuffle_deck(full_deck: list, seed: int = time()) -> list:
     """shuffles an inputted list"""
-    shuffled_deck = random.shuffle(full_deck)
+    shuffled_deck = random(seed).shuffle(full_deck)
     return shuffled_deck
 
 # Deck of cards
 
 
-def fresh_deck():
+def fresh_deck(seed: int = time()):
     suits = ["❤️", "♦️", "♠️", "♣️"]
     values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', "J", "Q", "K", "A"]
     deck = []
@@ -1981,4 +1982,6 @@ def main_game():
 
 
 if __name__ == "__main__":
-    main_game()
+    # main_game()
+    seed = 10
+    print(fresh_deck(seed))

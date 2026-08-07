@@ -20,3 +20,15 @@ def test_unique_mixed_data():
     test_list = [1, "1", "a", "A", 1.0]
 
     assert unique_list(test_list) == test_list
+
+
+def test_empty_shuffle():
+    seed =
+
+
+def test_fresh_deck_shuffle():
+    pass
+
+
+def test_one_item_shuffle():
+    pass
