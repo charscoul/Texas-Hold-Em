@@ -6,11 +6,18 @@ import numpy as np
 ###
 
 
-def unique_list(input_list: list):
+def unique_list(input_list: list) -> list:
+    """Custom function to find the unique items within a list, maintaining order
+
+        floats of the same value as ints are considered different items"""
+
     unique = []
     for item in input_list:
         if item not in unique:
             unique.append(item)
+        else:
+            if type(item) != type(unique[unique.index(item)]):
+                unique.append(item)
 
     return unique
 
