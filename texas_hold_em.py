@@ -124,103 +124,13 @@ def print_card_list(card_list: list[tuple], is_table: bool) -> None:
         print(line)
 
 
-def print_single_card(card_tup):
-    a, b, c, d, e, f, g = format_card(card_tup)
-    print(a)
-    print(b)
-    print(c)
-    print(d)
-    print(e)
-    print(f)
-    print(g)
+def burn_card(remaining_deck: list[tuple], burnt_cards: list[tuple]) -> None:
+    """Removes first card from deck and stores in separate list to allow later referencing
 
+    Currently the burnt card list is never referenced, but it may be useful for debugging"""
 
-def print_pocket(pocket: list):
-    card_tup_1 = pocket[0]
-    card_tup_2 = pocket[1]
-
-    a1, b1, c1, d1, e1, f1, g1 = format_card(card_tup_1)
-    a2, b2, c2, d2, e2, f2, g2 = format_card(card_tup_2)
-
-    print(a1, a2)
-    print(b1, b2)
-    print(c1, c2)
-    print(d1, d2)
-    print(e1, e2)
-    print(f1, f2)
-    print(g1, g2)
-
-# Displaying the table cards
-
-
-def print_flop(flop: list):
-    card_1 = flop[0]
-    card_2 = flop[1]
-    card_3 = flop[2]
-
-    a1, b1, c1, d1, e1, f1, g1 = format_card(card_1)
-    a2, b2, c2, d2, e2, f2, g2 = format_card(card_2)
-    a3, b3, c3, d3, e3, f3, g3 = format_card(card_3)
-
-    print("     ", a1, a2, a3)
-    print("     ", b1, b2, b3)
-    print("     ", c1, c2, c3)
-    print("     ", d1, d2, d3)
-    print("     ", e1, e2, e3)
-    print("     ", f1, f2, f3)
-    print("     ", g1, g2, g3)
-
-
-def print_turn(turn: list):
-    card_1 = turn[0]
-    card_2 = turn[1]
-    card_3 = turn[2]
-    card_4 = turn[3]
-
-    a1, b1, c1, d1, e1, f1, g1 = format_card(card_1)
-    a2, b2, c2, d2, e2, f2, g2 = format_card(card_2)
-    a3, b3, c3, d3, e3, f3, g3 = format_card(card_3)
-    a4, b4, c4, d4, e4, f4, g4 = format_card(card_4)
-
-    print("     ", a1, a2, a3, a4)
-    print("     ", b1, b2, b3, b4)
-    print("     ", c1, c2, c3, c4)
-    print("     ", d1, d2, d3, d4)
-    print("     ", e1, e2, e3, e4)
-    print("     ", f1, f2, f3, f4)
-    print("     ", g1, g2, g3, g4)
-
-
-def print_river(river: list):
-    card_1 = river[0]
-    card_2 = river[1]
-    card_3 = river[2]
-    card_4 = river[3]
-    card_5 = river[4]
-
-    a1, b1, c1, d1, e1, f1, g1 = format_card(card_1)
-    a2, b2, c2, d2, e2, f2, g2 = format_card(card_2)
-    a3, b3, c3, d3, e3, f3, g3 = format_card(card_3)
-    a4, b4, c4, d4, e4, f4, g4 = format_card(card_4)
-    a5, b5, c5, d5, e5, f5, g5 = format_card(card_5)
-
-    print("     ", a1, a2, a3, a4, a5)
-    print("     ", b1, b2, b3, b4, b5)
-    print("     ", c1, c2, c3, c4, c5)
-    print("     ", d1, d2, d3, d4, d5)
-    print("     ", e1, e2, e3, e4, e5)
-    print("     ", f1, f2, f3, f4, f5)
-    print("     ", g1, g2, g3, g4, g5)
-
-
-# burning cards
-
-def burn_card(remaining_deck: list, burnt_cards: list):
-    card = remaining_deck[0]
-    remaining_deck = remaining_deck[1:]
+    card = remaining_deck.pop(0)
     burnt_cards.append(card)
-
-    return remaining_deck, burnt_cards
 
 # remove first card from deck
 
@@ -236,7 +146,7 @@ def take_first_card(remaining_deck: list):
 
 def deal_pockets(remaining_deck: list, burnt_cards: list, still_in: list):
     pockets = {}
-    remaining_deck, burnt_cards = burn_card(remaining_deck, burnt_cards)
+    burn_card(remaining_deck, burnt_cards)
     for i in still_in:
         pockets[i] = []
         card, remaining_deck = take_first_card(remaining_deck)
@@ -252,7 +162,7 @@ def deal_pockets(remaining_deck: list, burnt_cards: list, still_in: list):
 
 
 def deal_flop(remaining_deck: list, burnt_cards: list):
-    remaining_deck, burnt_cards = burn_card(remaining_deck, burnt_cards)
+    burn_card(remaining_deck, burnt_cards)
     card_1, remaining_deck = take_first_card(remaining_deck)
     card_2, remaining_deck = take_first_card(remaining_deck)
     card_3, remaining_deck = take_first_card(remaining_deck)
@@ -265,7 +175,7 @@ def deal_flop(remaining_deck: list, burnt_cards: list):
 
 
 def deal_turn(remaining_deck: list, burnt_cards: list, flop: list):
-    remaining_deck, burnt_cards = burn_card(remaining_deck, burnt_cards)
+    burn_card(remaining_deck, burnt_cards)
     card_4, remaining_deck = take_first_card(remaining_deck)
 
     turn = [flop[0], flop[1], flop[2], card_4]
@@ -276,7 +186,7 @@ def deal_turn(remaining_deck: list, burnt_cards: list, flop: list):
 
 
 def deal_river(remaining_deck: list, burnt_cards: list, turn: list):
-    remaining_deck, burnt_cards = burn_card(remaining_deck, burnt_cards)
+    burn_card(remaining_deck, burnt_cards)
     card_5, remaining_deck = take_first_card(remaining_deck)
 
     river = [turn[0], turn[1], turn[2], turn[3], card_5]
@@ -807,11 +717,11 @@ def find_winner_comparison(pockets: dict, river: list):
 
         print(f'Player {player}, had: ')
         print("")
-        print_pocket(pocket)
+        print_card_list(pocket, False)
         print("")
         print(f"Their best hand was {best_score[0]}")
         print("")
-        print_river(players_winning_hand)
+        print_card_list(players_winning_hand, True)
 
         if current_winning_hand == None:
             current_winning_hand = players_winning_hand
@@ -1539,7 +1449,7 @@ def basic_play_hand(play_state_list=None, player_count=4, buy_ins=100, small_bli
     if player_out == False:
         print("Your Cards")
         print("")
-        print_pocket(pockets[player_index])
+        print_card_list(pockets[player_index], False)
         print("")
 
     # pre-flop betting (Start w/ player after big blind)
@@ -1601,13 +1511,13 @@ def basic_play_hand(play_state_list=None, player_count=4, buy_ins=100, small_bli
 
     print("Table:")
     print("")
-    print_flop(flop)
+    print_card_list(flop, True)
     print("")
 
     if player_out == False and play_state_list[player_index]["Folded"] == False:
         print("Your Cards:")
         print("")
-        print_pocket(pockets[player_index])
+        print_card_list(pockets[player_index], False)
 
         players_best = best_hand(pockets[player_index], flop)
         best_score = score_hand(players_best)
@@ -1679,14 +1589,14 @@ def basic_play_hand(play_state_list=None, player_count=4, buy_ins=100, small_bli
 
     print("Table:")
     print("")
-    print_turn(turn)
+    print_card_list(turn, True)
     print("")
 
     if player_out == False and play_state_list[player_index]["Folded"] == False:
 
         print("Your Cards:")
         print("")
-        print_pocket(pockets[player_index])
+        print_card_list(pockets[player_index], False)
 
         players_best = best_hand(pockets[player_index], turn)
         best_score = score_hand(players_best)
@@ -1755,13 +1665,13 @@ def basic_play_hand(play_state_list=None, player_count=4, buy_ins=100, small_bli
 
     print("Table:")
     print("")
-    print_river(river)
+    print_card_list(river, True)
     print("")
 
     if player_out == False and play_state_list[player_index]["Folded"] == False:
         print("Your Cards:")
         print("")
-        print_pocket(pockets[player_index])
+        print_card_list(pockets[player_index], False)
 
         players_best = best_hand(pockets[player_index], river)
         best_score = score_hand(players_best)
@@ -1948,7 +1858,7 @@ def section_1_test():
 
     print("Your Cards")
     print("")
-    print_pocket(pockets[player])
+    print_card_list(pockets[player], False)
     print("")
     input("Press anything to deal flop")
     print("")
@@ -1956,11 +1866,11 @@ def section_1_test():
     remaining_deck, burnt_cards, flop = deal_flop(remaining_deck, burnt_cards)
     print("Table:")
     print("")
-    print_flop(flop)
+    print_card_list(flop, True)
     print("")
     print("Your Cards:")
     print("")
-    print_pocket(pockets[player])
+    print_card_list(pockets[player], False)
 
     players_best = best_hand(pockets[player], flop)
     best_score = score_hand(players_best)
@@ -1976,11 +1886,11 @@ def section_1_test():
         remaining_deck, burnt_cards, flop)
     print("Table:")
     print("")
-    print_turn(turn)
+    print_card_list(turn, True)
     print("")
     print("Your Cards:")
     print("")
-    print_pocket(pockets[player])
+    print_card_list(pockets[player], False)
 
     players_best = best_hand(pockets[player], turn)
     best_score = score_hand(players_best)
@@ -1996,11 +1906,11 @@ def section_1_test():
         remaining_deck, burnt_cards, turn)
     print("Table:")
     print("")
-    print_river(river)
+    print_card_list(river, True)
     print("")
     print("Your Cards:")
     print("")
-    print_pocket(pockets[player])
+    print_card_list(pockets[player], False)
 
     players_best = best_hand(pockets[player], river)
     best_score = score_hand(players_best)
