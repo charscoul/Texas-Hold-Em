@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from random import Random
 from time import time
 
 ###
@@ -28,8 +29,10 @@ def unique_list(input_list: list) -> list:
 
 def shuffle_deck(full_deck: list, seed: int = time()) -> list:
     """shuffles an inputted list"""
-    shuffled_deck = random(seed).shuffle(full_deck)
-    return shuffled_deck
+    deck_copy = full_deck.copy()
+    Random(seed).shuffle(deck_copy)
+
+    return deck_copy
 
 # Deck of cards
 
@@ -42,7 +45,7 @@ def fresh_deck(seed: int = time()):
         for value in values:
             deck.append((value, suit))
 
-    deck = shuffle_deck(deck)
+    deck = shuffle_deck(deck, seed)
 
     return deck
 
