@@ -97,11 +97,10 @@ CARD_ROWS = 7
 
 
 def print_card_list(card_list: list[tuple], is_table: bool) -> None:
-    """Pints a list of cards, with an initial indentation if the cards are on the table (public view)"""
+    """Prints a list of cards, with an initial indentation if the cards are on the table (public view)"""
 
     if len(card_list) == 0:
-        print("Error: No cards to print")
-        return None
+        raise IndexError("No cards to print")
 
     # make blank printing list
     print_list = []
@@ -132,40 +131,40 @@ def burn_card(remaining_deck: list[tuple], burnt_cards: list[tuple]) -> None:
     card = remaining_deck.pop(0)
     burnt_cards.append(card)
 
-# remove first card from deck
+
+def deal_card(remaining_deck: list[tuple]) -> tuple:
+    """ removes and returns the first card from a deck"""
+    card = remaining_deck.pop(0)
+
+    return card
 
 
-def take_first_card(remaining_deck: list):
-    card = remaining_deck[0]
-    remaining_deck = remaining_deck[1:]
-
-    return card, remaining_deck
-
-# Initial Deal
-
-
-def deal_pockets(remaining_deck: list, burnt_cards: list, still_in: list):
+def deal_pockets(remaining_deck: list[tuple], burnt_cards: list[tuple], still_in: list[int]) -> dict:
+    """deals two cards to every active player"""
     pockets = {}
     burn_card(remaining_deck, burnt_cards)
-    for i in still_in:
-        pockets[i] = []
-        card, remaining_deck = take_first_card(remaining_deck)
-        pockets[i].append(card)
 
-    for i in still_in:
-        card_2, remaining_deck = take_first_card(remaining_deck)
-        pockets[i].append(card_2)
+    if len(still_in) == 0:
+        raise IndexError("No indexes still in")
+    for active_index in still_in:
+        pockets[active_index] = []
+        card = deal_card(remaining_deck)
+        pockets[active_index].append(card)
 
-    return remaining_deck, burnt_cards, pockets
+    for active_index in still_in:
+        card = deal_card(remaining_deck)
+        pockets[active_index].append(card)
+
+    return pockets
 
 # Flop
 
 
 def deal_flop(remaining_deck: list, burnt_cards: list):
     burn_card(remaining_deck, burnt_cards)
-    card_1, remaining_deck = take_first_card(remaining_deck)
-    card_2, remaining_deck = take_first_card(remaining_deck)
-    card_3, remaining_deck = take_first_card(remaining_deck)
+    card_1, remaining_deck = deal_card(remaining_deck)
+    card_2, remaining_deck = deal_card(remaining_deck)
+    card_3, remaining_deck = deal_card(remaining_deck)
 
     flop = [card_1, card_2, card_3]
 
@@ -176,7 +175,7 @@ def deal_flop(remaining_deck: list, burnt_cards: list):
 
 def deal_turn(remaining_deck: list, burnt_cards: list, flop: list):
     burn_card(remaining_deck, burnt_cards)
-    card_4, remaining_deck = take_first_card(remaining_deck)
+    card_4, remaining_deck = deal_card(remaining_deck)
 
     turn = [flop[0], flop[1], flop[2], card_4]
 
@@ -187,7 +186,7 @@ def deal_turn(remaining_deck: list, burnt_cards: list, flop: list):
 
 def deal_river(remaining_deck: list, burnt_cards: list, turn: list):
     burn_card(remaining_deck, burnt_cards)
-    card_5, remaining_deck = take_first_card(remaining_deck)
+    card_5, remaining_deck = deal_card(remaining_deck)
 
     river = [turn[0], turn[1], turn[2], turn[3], card_5]
 
@@ -1443,7 +1442,7 @@ def basic_play_hand(play_state_list=None, player_count=4, buy_ins=100, small_bli
     input("Press enter to deal everybody's pockets")
     print("")
 
-    remaining_deck, burnt_cards, pockets = deal_pockets(
+    pockets = deal_pockets(
         full_deck, [], still_in)
 
     if player_out == False:
@@ -1853,7 +1852,7 @@ def basic_play_tournament():
 
 def section_1_test():
     deck = game_deck()
-    remaining_deck, burnt_cards, pockets = deal_pockets(deck, [], 4)
+    pockets = deal_pockets(deck, [], 4)
     player = 0
 
     print("Your Cards")
