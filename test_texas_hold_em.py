@@ -1,5 +1,5 @@
 
-from texas_hold_em import unique_list, shuffle_deck, fresh_deck, produce_detail_rows, produce_default_rows
+from texas_hold_em import unique_list, shuffle_deck, fresh_deck, produce_detail_rows, produce_default_rows, print_card_list
 import pylint
 import pytest
 
@@ -57,16 +57,110 @@ def test_default_rows():
 def test_picture_rows():
     top, bot = produce_detail_rows(("K", "❤️"))
 
-    assert top.count(" ") == 3 and bot.count(" ") == 4
+    assert top.count(" ") == 4 and bot.count(" ") == 4
 
 
 def test_ten_rows():
     top, bot = produce_detail_rows(('10', '♣️'))
 
-    assert top.count(" ") == 2 and bot.count(" ") == 3
+    assert top.count(" ") == 3 and bot.count(" ") == 3
 
 
 def test_normal_rows():
     top, bot = produce_detail_rows(('5', '♦️'))
 
-    assert top.count(" ") == 3 and bot.count(" ") == 4
+    assert top.count(" ") == 4 and bot.count(" ") == 4
+
+
+def test_print_no_cards(capsys):
+    card_list = []
+
+    print_card_list(card_list, False)
+
+    captured_output = capsys.readouterr().out
+    printed_lines = captured_output.split("\n")
+
+    assert "Error: No cards to print" in printed_lines
+
+
+def test_print_one_card(capsys):
+    card_list = [('5', '♦️')]
+
+    print_card_list(card_list, False)
+
+    captured_output = capsys.readouterr().out
+    printed_lines = captured_output.split("\n")
+
+    assert ' ------ ' in printed_lines
+    assert printed_lines.count(' ------ ') == 2
+    assert '|      |' in printed_lines
+    assert printed_lines.count('|      |') == 3
+    assert '|    5♦️|' in printed_lines
+    assert '|5♦️    |' in printed_lines
+
+
+def test_print_pocket(capsys):
+    card_list = [('5', '♦️'), ('3', '♠️')]
+
+    print_card_list(card_list, False)
+
+    captured_output = capsys.readouterr().out
+    printed_lines = captured_output.split("\n")
+
+    assert ' ------   ------ ' in printed_lines
+    assert printed_lines.count(' ------   ------ ') == 2
+    assert '|      | |      |' in printed_lines
+    assert printed_lines.count('|      | |      |') == 3
+    assert '|    5♦️| |    3♠️|' in printed_lines
+    assert '|5♦️    | |3♠️    |' in printed_lines
+
+
+def test_print_flop(capsys):
+    card_list = [('5', '♦️'), ('3', '♠️'), ('J', '♦️')]
+
+    print_card_list(card_list, True)
+
+    captured_output = capsys.readouterr().out
+    printed_lines = captured_output.split("\n")
+
+    assert '      ------   ------   ------ ' in printed_lines
+    assert printed_lines.count('      ------   ------   ------ ') == 2
+    assert '     |      | |      | |      |' in printed_lines
+    assert printed_lines.count('     |      | |      | |      |') == 3
+    assert '     |    5♦️| |    3♠️| |    J♦️|' in printed_lines
+    assert '     |5♦️    | |3♠️    | |J♦️    |' in printed_lines
+
+
+def test_print_turn(capsys):
+    card_list = [('5', '♦️'), ('3', '♠️'), ('J', '♦️'), ('Q', '❤️')]
+
+    print_card_list(card_list, True)
+
+    captured_output = capsys.readouterr().out
+    printed_lines = captured_output.split("\n")
+
+    assert '      ------   ------   ------   ------ ' in printed_lines
+    assert printed_lines.count('      ------   ------   ------   ------ ') == 2
+    assert '     |      | |      | |      | |      |' in printed_lines
+    assert printed_lines.count('     |      | |      | |      | |      |') == 3
+    assert '     |    5♦️| |    3♠️| |    J♦️| |    Q❤️|' in printed_lines
+    assert '     |5♦️    | |3♠️    | |J♦️    | |Q❤️    |' in printed_lines
+
+
+def test_print_river(capsys):
+    card_list = [('5', '♦️'), ('3', '♠️'), ('J', '♦️'),
+                 ('Q', '❤️'), ('4', '❤️')]
+
+    print_card_list(card_list, True)
+
+    captured_output = capsys.readouterr().out
+    printed_lines = captured_output.split("\n")
+
+    assert '      ------   ------   ------   ------   ------ ' in printed_lines
+    assert printed_lines.count(
+        '      ------   ------   ------   ------   ------ ') == 2
+    assert '     |      | |      | |      | |      | |      |' in printed_lines
+    assert printed_lines.count(
+        '     |      | |      | |      | |      | |      |') == 3
+    assert '     |    5♦️| |    3♠️| |    J♦️| |    Q❤️| |    4❤️|' in printed_lines
+    assert '     |5♦️    | |3♠️    | |J♦️    | |Q❤️    | |4❤️    |' in printed_lines

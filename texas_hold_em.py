@@ -93,6 +93,37 @@ def format_card(card_tup: tuple[str]) -> tuple[str]:
     return edge, top, blank, blank, blank, bottom, edge
 
 
+CARD_ROWS = 7
+
+
+def print_card_list(card_list: list[tuple], is_table: bool) -> None:
+    """Pints a list of cards, with an initial indentation if the cards are on the table (public view)"""
+
+    if len(card_list) == 0:
+        print("Error: No cards to print")
+        return None
+
+    # make blank printing list
+    print_list = []
+    for _ in range(CARD_ROWS):
+        if is_table:
+            print_list.append("     ")
+        else:
+            print_list.append("")
+
+    # add the card's details
+    for card_tup in card_list:
+        card_lines = format_card(card_tup)
+        for i in range(CARD_ROWS):
+            print_list[i] += card_lines[i]
+            if card_tup is not card_list[-1]:
+                print_list[i] += " "
+
+    # print the list
+    for line in print_list:
+        print(line)
+
+
 def print_single_card(card_tup):
     a, b, c, d, e, f, g = format_card(card_tup)
     print(a)
