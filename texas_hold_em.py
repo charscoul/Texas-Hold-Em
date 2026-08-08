@@ -146,6 +146,7 @@ def deal_pockets(remaining_deck: list[tuple], burnt_cards: list[tuple], still_in
 
     if len(still_in) == 0:
         raise IndexError("No indexes still in")
+
     for active_index in still_in:
         pockets[active_index] = []
         card = deal_card(remaining_deck)
@@ -157,40 +158,70 @@ def deal_pockets(remaining_deck: list[tuple], burnt_cards: list[tuple], still_in
 
     return pockets
 
-# Flop
+
+FLOP_COUNT = 3
 
 
-def deal_flop(remaining_deck: list, burnt_cards: list):
+def deal_flop(remaining_deck: list[tuple], burnt_cards: list[tuple]) -> list[tuple]:
+    """Deals the first three cards to the table"""
+
     burn_card(remaining_deck, burnt_cards)
-    card_1, remaining_deck = deal_card(remaining_deck)
-    card_2, remaining_deck = deal_card(remaining_deck)
-    card_3, remaining_deck = deal_card(remaining_deck)
+    flop = []
+    for _ in range(FLOP_COUNT):
+        card = deal_card(remaining_deck)
+        flop.append(card)
 
-    flop = [card_1, card_2, card_3]
-
-    return remaining_deck, burnt_cards, flop
-
-# Turn
+    return flop
 
 
-def deal_turn(remaining_deck: list, burnt_cards: list, flop: list):
+TURN_COUNT = 4
+
+
+def deal_turn(remaining_deck: list[tuple], burnt_cards: list[tuple], flop: list[tuple]) -> list[tuple]:
+    """Deals the fourth card to the table"""
+
+    if len(flop) != FLOP_COUNT:
+        raise ValueError(
+            "Cannot deal turn unless exactly three cards showing on table")
+
     burn_card(remaining_deck, burnt_cards)
-    card_4, remaining_deck = deal_card(remaining_deck)
+    card = deal_card(remaining_deck)
 
-    turn = [flop[0], flop[1], flop[2], card_4]
+    turn = flop.copy()
+    turn.append(card)
 
-    return remaining_deck, burnt_cards, turn
-
-# River
+    return turn
 
 
-def deal_river(remaining_deck: list, burnt_cards: list, turn: list):
+def deal_river(remaining_deck: list[tuple], burnt_cards: list[tuple], turn: list[tuple]) -> list[tuple]:
+    """Deals the final card to the table"""
+
+    if len(turn) != TURN_COUNT:
+        raise ValueError(
+            "Cannot deal river unless exactly four cards showing on table")
+
     burn_card(remaining_deck, burnt_cards)
-    card_5, remaining_deck = deal_card(remaining_deck)
+    card = deal_card(remaining_deck)
 
-    river = [turn[0], turn[1], turn[2], turn[3], card_5]
+    river = turn.copy()
+    river.append(card)
 
-    return remaining_deck, burnt_cards, river
+    return river
+
+
+def deal_to_table(remaining_deck: list[tuple], burnt_cards: list[tuple], table: list[tuple]) -> list[tuple]:
+    """Deals the next stage of the game to the table"""
+    if len(table) == 0:
+        table = deal_flop(remaining_deck, burnt_cards)
+    elif len(table) == FLOP_COUNT:
+        table = deal_turn(remaining_deck, burnt_cards, table)
+    elif len(table) == TURN_COUNT:
+        table = deal_river(remaining_deck, burnt_cards, table)
+    else:
+        raise ValueError(
+            "Cannot deal to a table of this length")
+
+    return table
 
 
 # Hand Hierarchy
