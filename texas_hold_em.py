@@ -58,16 +58,22 @@ def game_deck(seed: int = time()) -> list[tuple]:
 
     return shuffled_deck
 
-# Displaying your hole cards (referring to as pocket)
+
+"""Displaying your hole cards (referring to as pocket)"""
 
 
-def format_card(card_tup):
+def produce_default_rows() -> tuple[str]:
+    """Produces the top/ bottom edges and blank rows for the playing card"""
+    edge = ' ------ '
+    blank = '|      |'
+
+    return edge, blank
+
+
+def produce_detail_rows(card_tup: tuple[str]) -> tuple[str]:
+    """Produces the card string rows with the card details"""
     suit = card_tup[1]
     value = card_tup[0]
-
-    top_edge = ' ------ '
-    mid_row = '|      |'
-    bottom_edge = ' ------ '
 
     if value == "10":
         top_row = f'|   {value}{suit}|'
@@ -76,7 +82,15 @@ def format_card(card_tup):
         top_row = f'|    {value}{suit}|'
         bottom_row = f'|{value}{suit}    |'
 
-    return top_edge, top_row, mid_row, mid_row, mid_row, bottom_row, bottom_edge
+    return top_row, bottom_row
+
+
+def format_card(card_tup: tuple[str]) -> tuple[str]:
+    """Formats card details as a playing card"""
+    edge, blank = produce_default_rows()
+    top, bottom = produce_detail_rows(card_tup)
+
+    return edge, top, blank, blank, blank, bottom, edge
 
 
 def print_single_card(card_tup):

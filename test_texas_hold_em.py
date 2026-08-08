@@ -1,5 +1,5 @@
 
-from texas_hold_em import unique_list, shuffle_deck
+from texas_hold_em import unique_list, shuffle_deck, fresh_deck, produce_detail_rows, produce_default_rows
 import pylint
 import pytest
 
@@ -43,3 +43,30 @@ def test_one_item_shuffle():
     deck = [11]
 
     assert shuffle_deck(deck, seed) == [11]
+
+
+def test_new_deck():
+    assert fresh_deck() == [('2', '❤️'), ('3', '❤️'), ('4', '❤️'), ('5', '❤️'), ('6', '❤️'), ('7', '❤️'), ('8', '❤️'), ('9', '❤️'), ('10', '❤️'), ('J', '❤️'), ('Q', '❤️'), ('K', '❤️'), ('A', '❤️'), ('2', '♦️'), ('3', '♦️'), ('4', '♦️'), ('5', '♦️'), ('6', '♦️'), ('7', '♦️'), ('8', '♦️'), ('9', '♦️'), ('10', '♦️'), ('J', '♦️'), ('Q', '♦️'), ('K', '♦️'), ('A', '♦️'),
+                            ('2', '♠️'), ('3', '♠️'), ('4', '♠️'), ('5', '♠️'), ('6', '♠️'), ('7', '♠️'), ('8', '♠️'), ('9', '♠️'), ('10', '♠️'), ('J', '♠️'), ('Q', '♠️'), ('K', '♠️'), ('A', '♠️'), ('2', '♣️'), ('3', '♣️'), ('4', '♣️'), ('5', '♣️'), ('6', '♣️'), ('7', '♣️'), ('8', '♣️'), ('9', '♣️'), ('10', '♣️'), ('J', '♣️'), ('Q', '♣️'), ('K', '♣️'), ('A', '♣️')]
+
+
+def test_default_rows():
+    assert produce_default_rows() == (' ------ ', '|      |')
+
+
+def test_picture_rows():
+    top, bot = produce_detail_rows(("K", "❤️"))
+
+    assert top.count(" ") == 3 and bot.count(" ") == 4
+
+
+def test_ten_rows():
+    top, bot = produce_detail_rows(('10', '♣️'))
+
+    assert top.count(" ") == 2 and bot.count(" ") == 3
+
+
+def test_normal_rows():
+    top, bot = produce_detail_rows(('5', '♦️'))
+
+    assert top.count(" ") == 3 and bot.count(" ") == 4
