@@ -27,17 +27,18 @@ def unique_list(input_list: list) -> list:
 """ Section 1: Defining key elements of the cards """
 
 
-def shuffle_deck(full_deck: list, seed: int = time()) -> list:
+def shuffle_deck(full_deck: list[tuple], seed: int = time()) -> list[tuple]:
     """shuffles an inputted list"""
     deck_copy = full_deck.copy()
     Random(seed).shuffle(deck_copy)
 
     return deck_copy
 
-# Deck of cards
 
+def fresh_deck() -> list[tuple]:
+    """Creates a fresh, ordered deck of cards
 
-def fresh_deck(seed: int = time()):
+    ordered with high aces to align with card values for scoring"""
     suits = ["❤️", "♦️", "♠️", "♣️"]
     values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', "J", "Q", "K", "A"]
     deck = []
@@ -45,9 +46,17 @@ def fresh_deck(seed: int = time()):
         for value in values:
             deck.append((value, suit))
 
-    deck = shuffle_deck(deck, seed)
-
     return deck
+
+
+def game_deck(seed: int = time()) -> list[tuple]:
+    """Creates a game ready deck of cards"""
+
+    new_deck = fresh_deck()
+
+    shuffled_deck = shuffle_deck(new_deck, seed)
+
+    return shuffled_deck
 
 # Displaying your hole cards (referring to as pocket)
 
@@ -651,7 +660,7 @@ def best_hand(pocket: list, table: list, draw=False):
 
 
 def find_nuts(table: list):
-    not_tabled = fresh_deck()
+    not_tabled = game_deck()
     for card in table:
         not_tabled.remove(card)
 
@@ -1429,7 +1438,7 @@ def debug(play_state_list: list, current_bet: int):
 
 
 def basic_play_hand(play_state_list=None, player_count=4, buy_ins=100, small_blind=1, hand_number=0, player_index=0):
-    full_deck = fresh_deck()
+    full_deck = game_deck()
     big_blind = 2 * small_blind
 
     if play_state_list == None:
@@ -1888,7 +1897,7 @@ def basic_play_tournament():
 
 
 def section_1_test():
-    deck = fresh_deck()
+    deck = game_deck()
     remaining_deck, burnt_cards, pockets = deal_pockets(deck, [], 4)
     player = 0
 
@@ -1987,4 +1996,4 @@ def main_game():
 if __name__ == "__main__":
     # main_game()
     seed = 10
-    print(fresh_deck(seed))
+    print(game_deck(seed))
