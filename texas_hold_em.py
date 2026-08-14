@@ -26,19 +26,83 @@ def unique_list(input_list: list) -> list:
 
 """ Section 1: Defining key elements of the cards """
 
+SUIT_TO_EMOJI = {"H": "❤️", "D": "♦️", "S": "♠️", "C": "♣️"}
+CARD_VALUES = ['2', '3', '4', '5', '6',
+               '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+CARD_SUITS = ["H", "D", "S", "C"]
+CARD_VALUES_RANKED = {'2': 13, '3': 12, '4': 11, '5': 10, '6': 9,
+                      '7': 8, '8': 7, '9': 6, '10': 5, 'J': 4, 'Q': 3, 'K': 2, 'A': 1}
+CARD_VALUES_DESCRIBED = {'2': "Two", '3': "Three", '4': "Four", '5': "Five", '6': "Six",
+                         '7': "Seven", '8': "Eight", '9': "Nine", '10': "Ten", 'J': "Jack", 'Q': "Queen", 'K': "King", 'A': "Ace"}
+CARD_SUITS_DESCRIBED = {"H": "Hearts",
+                        "D": "Diamonds", "S": "Spades", "C": "Clubs"}
+
 
 class Card:
-    """A singular playing card"""
+    """A playing card, represented by a value and a suit"""
 
-    def __init__(self):
-        pass
+    def __init__(self, value: str, suit: str):
+        """Initiates a single instance of a card"""
+        # validate input types
+        if not isinstance(suit, str):
+            raise TypeError("suit must be a string")
+        if not isinstance(value, str):
+            raise TypeError("value must be a string")
+
+        # set core attributes form inputs
+        self.value = value.upper()
+        self.suit = suit.upper()
+
+        # validate input types
+        if not isinstance(self.suit, str):
+            raise TypeError("suit must be a string")
+        if not isinstance(self.value, str):
+            raise TypeError("value must be a string")
+
+        # validate input values
+        if self.suit not in CARD_SUITS:
+            raise ValueError("suit must be 'H', 'D', 'S' or 'C'")
+        if self.value not in CARD_VALUES:
+            raise ValueError("value must be '2', '3', '4', '5', '6', \
+                             '7', '8', '9', '10', 'J', 'Q', 'K' or 'A'")
+
+    @property
+    def emoji(self) -> str:
+        """Returns the emoji representation of the suit"""
+        return SUIT_TO_EMOJI[self.suit]
+
+    def __str__(self) -> str:
+        return f"{CARD_VALUES_DESCRIBED[self.value]} of {CARD_SUITS_DESCRIBED[self.suit]}"
 
 
 class Deck:
     """A deck of cards"""
 
     def __init__(self):
-        pass
+        self.cards = self.fresh_deck()
+
+    def fresh_deck(self) -> list[Card]:
+        """Assembles a fresh, ordered deck of cards
+
+        ordered with aces high to align with card values for scoring"""
+
+        return [Card(value, suit) for suit in CARD_SUITS for value in CARD_VALUES]
+
+    def print_deck(self) -> None:
+        """prints each card in a deck for debugging"""
+
+        for card in self.cards:
+            print(card)
+
+    def shuffle(self, seed: int = time()) -> None:
+        """Shuffles the deck of cards"""
+        copied_deck = self.cards.copy()
+        Random(seed).shuffle(copied_deck)
+
+        self.cards = copied_deck
+
+    def __str__(self) -> str:
+        """returns a list of card strings"""
 
 
 def shuffle_deck(full_deck: list[tuple], seed: int = time()) -> list[tuple]:
@@ -1994,4 +2058,7 @@ def main_game():
 
 
 if __name__ == "__main__":
-    main_game()
+    # main_game()
+
+    deck = Deck()
+    deck.print_deck()

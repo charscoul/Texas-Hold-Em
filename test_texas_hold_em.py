@@ -1,7 +1,103 @@
 
-from texas_hold_em import unique_list, shuffle_deck, fresh_deck, produce_detail_rows, produce_default_rows, print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
+from texas_hold_em import unique_list, Card, Deck, shuffle_deck, fresh_deck, produce_detail_rows, produce_default_rows, print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
 import pylint
 import pytest
+
+
+@pytest.fixture()
+def ace_of_hearts() -> Card:
+    return Card("A", "H")
+
+
+@pytest.fixture()
+def seven_of_diamonds() -> Card:
+    return Card("7", "D")
+
+
+@pytest.fixture()
+def jack_of_spades() -> Card:
+    return Card("J", "S")
+
+
+@pytest.fixture()
+def ten_of_clubs() -> Card:
+    return Card("10", "C")
+
+
+@pytest.fixture()
+def new_deck() -> Deck:
+    return Deck()
+
+
+class TestCard:
+    """Card initiation tests"""
+
+    def test_non_str_value(self):
+        with pytest.raises(TypeError):
+            Card(7, "C")
+
+    def test_non_letter_suit(self):
+        with pytest.raises(ValueError):
+            Card("7", "♦️")
+
+    def test_success_1(self, ace_of_hearts):
+        assert ace_of_hearts.suit == "H"
+        assert ace_of_hearts.value == "A"
+
+    def test_success_2(self, jack_of_spades):
+        assert jack_of_spades.suit == "S"
+        assert jack_of_spades.value == "J"
+
+    def test_success_3(self, seven_of_diamonds):
+        assert seven_of_diamonds.suit == "D"
+        assert seven_of_diamonds.value == "7"
+
+    def test_success_4(self, ten_of_clubs):
+        assert ten_of_clubs.suit == "C"
+        assert ten_of_clubs.value == "10"
+
+    """Card emoji tests"""
+
+    def test_emoji_1(self, ace_of_hearts):
+        assert ace_of_hearts.emoji == "❤️"
+
+    def test_emoji_2(self, jack_of_spades):
+        assert jack_of_spades.emoji == "♠️"
+
+    def test_emoji_3(self, seven_of_diamonds):
+        assert seven_of_diamonds.emoji == "♦️"
+
+    def test_emoji_4(self, ten_of_clubs):
+        assert ten_of_clubs.emoji == "♣️"
+
+    """Card string tests"""
+
+    def test_string_1(self, ace_of_hearts):
+        assert str(ace_of_hearts) == "Ace of Hearts"
+
+    def test_string_2(self, jack_of_spades):
+        assert str(jack_of_spades) == "Jack of Spades"
+
+    def test_string_3(self, seven_of_diamonds):
+        assert str(seven_of_diamonds) == "Seven of Diamonds"
+
+    def test_string_4(self, ten_of_clubs):
+        assert str(ten_of_clubs) == "Ten of Clubs"
+
+
+class TestDeck:
+    """Deck initiation tests"""
+
+    def test_fresh_deck_order(self, new_deck, ace_of_hearts, jack_of_spades, seven_of_diamonds, ten_of_clubs):
+        assert str(new_deck.cards[12]) == str(ace_of_hearts)
+        assert str(new_deck.cards[18]) == str(seven_of_diamonds)
+        assert str(new_deck.cards[35]) == str(jack_of_spades)
+        assert str(new_deck.cards[-5]) == str(ten_of_clubs)
+        assert len(new_deck.cards) == 52
+
+    """Deck shuffle tests"""
+
+    def test_shuffle_fresh_deck(self, new_deck, ace_of_hearts, jack_of_spades, seven_of_diamonds, ten_of_clubs):
 
 
 def test_already_unique_ints():
