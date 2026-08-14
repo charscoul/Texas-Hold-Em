@@ -506,7 +506,7 @@ class TestHumanPlayer:
         player_chooses(['Humperdoo', "Charlie"], monkeypatch)
         seed = 10
 
-        human = HumanPlayer(some_indexes, test_names, seed)
+        test_human = HumanPlayer(some_indexes, test_names, seed)
 
         captured_output = capsys.readouterr().out
         printed_lines = captured_output.split("\n")
@@ -517,17 +517,17 @@ class TestHumanPlayer:
         player_chooses(["Charlie"], monkeypatch)
         seed = 10
 
-        human = HumanPlayer(some_indexes, test_names, seed)
+        test_human = HumanPlayer(some_indexes, test_names, seed)
 
-        assert human.name == 'Charlie'
+        assert test_human.name == 'Charlie'
 
     def test_bot_name(self, monkeypatch, some_indexes, test_names):
         player_chooses(["Andy"], monkeypatch)
         seed = 10
 
-        human = HumanPlayer(some_indexes, test_names, seed)
+        test_human = HumanPlayer(some_indexes, test_names, seed)
 
-        assert human.name == 'Andy'
+        assert test_human.name == 'Andy'
         assert "Andy" not in test_names
 
 

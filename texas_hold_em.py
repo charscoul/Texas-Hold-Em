@@ -290,6 +290,24 @@ class HumanPlayer(Player):
 
             return attempt
 
+# Thoughts:
+    # create a dealer class (player_list, deck),
+        # deal_pockets makes a pocket for every active player
+            # requires player class to have get_pockets, use their index to retrieve from dealt cards
+            # requires player class to have active attribute
+        # deal_to_table adds appropriate number of cards to table
+            # requires table card getter method
+
+    # create CardGroup scorer method
+
+    # create temporary card groups (pocket + table)
+        # card group compare
+        # find best hand and all that
+
+    # dealer compare (find winner)
+
+    # dealer nuts
+
 
 def deal_pockets(remaining_deck: list[tuple], burnt_cards: list[tuple], still_in: list[int]) -> dict:
     """deals two cards to every active player"""
