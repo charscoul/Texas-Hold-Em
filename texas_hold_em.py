@@ -3,9 +3,8 @@ import numpy as np
 from random import Random
 from time import time
 
-###
-# Prologue: setting up functions for basic python methodology
-###
+
+""" Section 1: Defining global constants and functions"""
 
 
 def unique_list(input_list: list) -> list:
@@ -32,8 +31,6 @@ def default_rows() -> tuple[str]:
     return edge, blank
 
 
-""" Section 1: Defining key elements of the cards """
-
 SUIT_TO_EMOJI = {"H": "❤️", "D": "♦️", "S": "♠️", "C": "♣️"}
 CARD_VALUES = ['2', '3', '4', '5', '6',
                '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
@@ -45,6 +42,13 @@ CARD_VALUES_DESCRIBED = {'2': "Two", '3': "Three", '4': "Four", '5': "Five", '6'
 CARD_SUITS_DESCRIBED = {"H": "Hearts",
                         "D": "Diamonds", "S": "Spades", "C": "Clubs"}
 CARD_ROWS = 7
+POCKET_SIZE = 2
+FLOP_SIZE = 3
+TURN_SIZE = 4
+RIVER_SIZE = 5
+TABLE_SIZES = [FLOP_SIZE, TURN_SIZE, RIVER_SIZE]
+
+"""Section 2: Defining card-based classes"""
 
 
 class Card:
@@ -152,7 +156,7 @@ class CardGroup:
         if self.cards != unique_list(self.cards):
             raise ValueError("Duplicate cards cannot exist")
 
-        self.public = True
+        self.public = False
 
     def print(self) -> None:
         """Prints the cards, with an initial indentation if the cards are on the table (public view)"""
@@ -184,10 +188,19 @@ class Pocket(CardGroup):
     def __init__(self, cards: list[Card]):
         super().__init__(cards)
 
+        # additional length restrictions
+        if len(self.cards) != POCKET_SIZE:
+            raise ValueError("Pockets must contain exactly 2 cards")
+
 
 class Table(CardGroup):
     def __init__(self, cards):
         super().__init__(cards)
+        self.public = True
+
+        # additional length restrictions
+        if len(self.cards) not in TABLE_SIZES:
+            raise ValueError("The table must contain 3, 4 or 5 cards")
 
 
 """Displaying your hole cards (referring to as pocket)"""

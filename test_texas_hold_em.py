@@ -1,5 +1,5 @@
 
-from texas_hold_em import unique_list, default_rows, Card, Deck, CardGroup, print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
+from texas_hold_em import unique_list, default_rows, Card, Deck, CardGroup, Pocket, Table, print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
 import pylint
 import pytest
 
@@ -22,6 +22,11 @@ def jack_of_spades() -> Card:
 @pytest.fixture()
 def ten_of_clubs() -> Card:
     return Card("10", "C")
+
+
+@pytest.fixture()
+def ace_of_clubs() -> Card:
+    return Card("A", "C")
 
 
 @pytest.fixture()
@@ -161,7 +166,6 @@ class TestCardGroup:
 
     def test_print_one_card(self, capsys, seven_of_diamonds):
         test_group = CardGroup([seven_of_diamonds])
-        test_group.public = False
 
         test_group.print()
 
@@ -175,8 +179,42 @@ class TestCardGroup:
         assert '|    7♦️|' in printed_lines
         assert '|7♦️    |' in printed_lines
 
+
+class TestPocket:
+    """Pocket initialisation tests"""
+
+    def test_non_list_pocket(self, seven_of_diamonds):
+        with pytest.raises(TypeError):
+            Pocket(seven_of_diamonds)
+
+    def test_non_cards_pocket(self):
+        with pytest.raises(TypeError):
+            Pocket([("7", "D")])
+
+    def test_duplicates_pocket(self, ace_of_hearts):
+        with pytest.raises(ValueError):
+            Pocket([ace_of_hearts, ace_of_hearts])
+
+    def test_short_list_pocket(self, ace_of_hearts):
+        with pytest.raises(ValueError):
+            Pocket([ace_of_hearts])
+
+    def test_long_list_pocket(self, ace_of_hearts, seven_of_diamonds, jack_of_spades):
+        with pytest.raises(ValueError):
+            Pocket([ace_of_hearts, seven_of_diamonds, jack_of_spades])
+
+    def test_suitable_list_pocket(self, ace_of_hearts, seven_of_diamonds):
+        test_pocket = Pocket(
+            [ace_of_hearts, seven_of_diamonds])
+
+        assert test_pocket.cards == [ace_of_hearts,
+                                     seven_of_diamonds]
+        assert test_pocket.public is False
+
+    """print method tests"""
+
     def test_print_pocket(self, capsys, seven_of_diamonds, jack_of_spades):
-        test_group = CardGroup([seven_of_diamonds, jack_of_spades])
+        test_group = Pocket([seven_of_diamonds, jack_of_spades])
         test_group.public = False
 
         test_group.print()
@@ -191,8 +229,59 @@ class TestCardGroup:
         assert '|    7♦️| |    J♠️|' in printed_lines
         assert '|7♦️    | |J♠️    |' in printed_lines
 
+
+class TestTable:
+    """Table initialisation tests"""
+
+    def test_non_list_table(self, seven_of_diamonds):
+        with pytest.raises(TypeError):
+            Table(seven_of_diamonds)
+
+    def test_non_cards_table(self):
+        with pytest.raises(TypeError):
+            Table([("7", "D")])
+
+    def test_duplicates_table(self, ace_of_hearts):
+        with pytest.raises(ValueError):
+            Table([ace_of_hearts, ace_of_hearts, ace_of_hearts])
+
+    def test_short_list_table(self, ace_of_hearts):
+        with pytest.raises(ValueError):
+            Table([ace_of_hearts, ace_of_hearts])
+
+    def test_long_list_table(self, ace_of_hearts, seven_of_diamonds, jack_of_spades, jack_of_diamonds, ten_of_clubs, ace_of_clubs):
+        with pytest.raises(ValueError):
+            Table([ace_of_hearts, seven_of_diamonds, jack_of_spades,
+                  ten_of_clubs, jack_of_diamonds, ace_of_clubs])
+
+    def test_flop_table(self, ace_of_hearts, seven_of_diamonds, jack_of_spades):
+        test_table = Table(
+            [ace_of_hearts, seven_of_diamonds, jack_of_spades])
+
+        assert test_table.cards == [ace_of_hearts,
+                                    seven_of_diamonds, jack_of_spades]
+        assert test_table.public is True
+
+    def test_turn_table(self, ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs):
+        test_table = Table(
+            [ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs])
+
+        assert test_table.cards == [ace_of_hearts,
+                                    seven_of_diamonds, jack_of_spades, ten_of_clubs]
+        assert test_table.public is True
+
+    def test_river_table(self, ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs, jack_of_diamonds):
+        test_table = Table(
+            [ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs, jack_of_diamonds])
+
+        assert test_table.cards == [ace_of_hearts,
+                                    seven_of_diamonds, jack_of_spades, ten_of_clubs, jack_of_diamonds]
+        assert test_table.public is True
+
+    """print method tests"""
+
     def test_print_flop(self, capsys, jack_of_spades, seven_of_diamonds, jack_of_diamonds):
-        test_group = CardGroup(
+        test_group = Table(
             [seven_of_diamonds, jack_of_spades, jack_of_diamonds])
 
         test_group.print()
@@ -208,7 +297,7 @@ class TestCardGroup:
         assert '     |7♦️    | |J♠️    | |J♦️    |' in printed_lines
 
     def test_print_turn(self, capsys, jack_of_spades, seven_of_diamonds, jack_of_diamonds, ace_of_hearts):
-        test_group = CardGroup(
+        test_group = Table(
             [seven_of_diamonds, jack_of_spades, jack_of_diamonds, ace_of_hearts])
 
         test_group.print()
@@ -226,7 +315,7 @@ class TestCardGroup:
         assert '     |7♦️    | |J♠️    | |J♦️    | |A❤️    |' in printed_lines
 
     def test_print_river(self, capsys, jack_of_spades, seven_of_diamonds, jack_of_diamonds, ace_of_hearts, ten_of_clubs):
-        test_group = CardGroup(
+        test_group = Table(
             [seven_of_diamonds, jack_of_spades, jack_of_diamonds, ace_of_hearts, ten_of_clubs])
 
         test_group.print()
