@@ -1,5 +1,5 @@
 
-from texas_hold_em import unique_list, default_rows, Card, Deck, CardGroup, Pocket, Table, print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
+from texas_hold_em import unique_list, default_rows, Card, Deck, CardGroup, Pocket, Table, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
 import pylint
 import pytest
 
@@ -7,6 +7,21 @@ import pytest
 @pytest.fixture()
 def ace_of_hearts() -> Card:
     return Card("A", "H")
+
+
+@pytest.fixture()
+def two_of_hearts() -> Card:
+    return Card("2", "H")
+
+
+@pytest.fixture()
+def three_of_hearts() -> Card:
+    return Card("3", "H")
+
+
+@pytest.fixture()
+def two_of_diamonds() -> Card:
+    return Card("2", "D")
 
 
 @pytest.fixture()
@@ -138,6 +153,37 @@ class TestDeck:
         assert str(new_deck.cards[29]) == str(jack_of_spades)
         assert str(new_deck.cards[3]) == str(ten_of_clubs)
         assert len(new_deck.cards) == 52
+
+    """burn method tests"""
+
+    def test_burn_fresh_deck(self, new_deck, two_of_hearts, three_of_hearts):
+        new_deck.burn()
+
+        first_card_left = new_deck.cards[0]
+        burn_list = new_deck.burnt_cards
+
+        assert str(first_card_left) == str(three_of_hearts)
+        assert str(burn_list[0]) == str(two_of_hearts)
+        assert len(burn_list) == 1
+
+    def test_burn_empty_deck(self, new_deck):
+        new_deck.cards = []
+        with pytest.raises(IndexError):
+            new_deck.burn()
+
+    def test_burn_partial_deck(self, new_deck, two_of_hearts, ace_of_hearts, two_of_diamonds):
+        new_deck.burn()
+        new_deck.cards = new_deck.cards[11:]
+
+        new_deck.burn()
+
+        first_card_left = new_deck.cards[0]
+        burn_list = new_deck.burnt_cards
+
+        assert str(first_card_left) == str(two_of_diamonds)
+        assert str(burn_list[0]) == str(two_of_hearts)
+        assert str(burn_list[1]) == str(ace_of_hearts)
+        assert len(burn_list) == 2
 
 
 class TestCardGroup:
@@ -353,13 +399,6 @@ def test_unique_mixed_data():
 
 def test_default_rows():
     assert default_rows() == (' ------ ', '|      |')
-
-
-def test_print_no_cards():
-    card_list = []
-
-    with pytest.raises(IndexError):
-        print_card_list(card_list, False)
 
 
 def test_burn_start_of_game():

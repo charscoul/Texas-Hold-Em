@@ -112,7 +112,9 @@ class Deck:
     """A deck of cards"""
 
     def __init__(self):
+        """Initiates an instance of a new deck"""
         self.cards = self.fresh_deck()
+        self.burnt_cards = []
 
     def fresh_deck(self) -> list[Card]:
         """Assembles a fresh, ordered deck of cards
@@ -137,6 +139,10 @@ class Deck:
     def __str__(self) -> str:
         """returns a list of card strings"""
         return str([str(card) for card in self.cards])
+
+    def burn(self) -> str:
+        """removes a card from the deck and adds it to the burnt pile"""
+        self.burnt_cards.append(self.cards.pop(0))
 
 
 class CardGroup:
@@ -201,36 +207,6 @@ class Table(CardGroup):
         # additional length restrictions
         if len(self.cards) not in TABLE_SIZES:
             raise ValueError("The table must contain 3, 4 or 5 cards")
-
-
-"""Displaying your hole cards (referring to as pocket)"""
-
-
-def print_card_list(card_list: list[tuple], is_table: bool) -> None:
-    """Prints a list of cards, with an initial indentation if the cards are on the table (public view)"""
-
-    if len(card_list) == 0:
-        raise IndexError("No cards to print")
-
-    # make blank printing list
-    print_list = []
-    for _ in range(CARD_ROWS):
-        if is_table:
-            print_list.append("     ")
-        else:
-            print_list.append("")
-
-    # add the card's details
-    for card_tup in card_list:
-        card_lines = format_card(card_tup)
-        for i in range(CARD_ROWS):
-            print_list[i] += card_lines[i]
-            if card_tup is not card_list[-1]:
-                print_list[i] += " "
-
-    # print the list
-    for line in print_list:
-        print(line)
 
 
 def burn_card(remaining_deck: list[tuple], burnt_cards: list[tuple]) -> None:
