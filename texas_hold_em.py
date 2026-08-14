@@ -47,6 +47,8 @@ FLOP_SIZE = 3
 TURN_SIZE = 4
 RIVER_SIZE = 5
 TABLE_SIZES = [FLOP_SIZE, TURN_SIZE, RIVER_SIZE]
+MIN_NAME_LENGTH = 3
+MAX_NAME_LENGTH = 8
 
 """Section 2: Defining card-based classes"""
 
@@ -140,9 +142,13 @@ class Deck:
         """returns a list of card strings"""
         return str([str(card) for card in self.cards])
 
-    def burn(self) -> str:
+    def burn(self) -> None:
         """removes a card from the deck and adds it to the burnt pile"""
         self.burnt_cards.append(self.cards.pop(0))
+
+    def deal(self) -> Card:
+        """Removes and returns the top card of the deck"""
+        return self.cards.pop(0)
 
 
 class CardGroup:
@@ -208,21 +214,59 @@ class Table(CardGroup):
         if len(self.cards) not in TABLE_SIZES:
             raise ValueError("The table must contain 3, 4 or 5 cards")
 
-
-def burn_card(remaining_deck: list[tuple], burnt_cards: list[tuple]) -> None:
-    """Removes first card from deck and stores in separate list to allow later referencing
-
-    Currently the burnt card list is never referenced, but it may be useful for debugging"""
-
-    card = remaining_deck.pop(0)
-    burnt_cards.append(card)
+    def add_card(self, added_card) -> None:
+        pass
 
 
-def deal_card(remaining_deck: list[tuple]) -> tuple:
-    """ removes and returns the first card from a deck"""
-    card = remaining_deck.pop(0)
+class Player:
+    """A player in the tournament"""
 
-    return card
+    def __init__(self, current_indices: list[int], possible_names: list[str], seed: int = time()):
+        """initiates an instance of a player"""
+
+        # input type validations
+        if not isinstance(current_indices, list):
+            raise TypeError("current_indices must be a list")
+        if not isinstance(possible_names, list):
+            raise TypeError("possible names must be a list")
+        if not all(isinstance(index, int) for index in current_indices):
+            raise TypeError("all current indexes must be integers")
+        if not all(isinstance(name, str) for name in possible_names):
+            raise TypeError("all possible names must be integers")
+
+        # input value validations
+        if not all(index >= 0 for index in current_indices):
+            raise ValueError("all possible indexes must be non-negative")
+        if not all(len(name) in range(MIN_NAME_LENGTH, MAX_NAME_LENGTH) for name in possible_names):
+            raise ValueError(
+                f"all possible names must be between {MIN_NAME_LENGTH} and {MAX_NAME_LENGTH} letters long")
+
+        self.index = self._get_index(current_indices)
+        self.name = self._get_name(possible_names, seed)
+
+    def _get_name(self, name_list: list[str], seed: int = time()) -> str:
+        """Randomly selects a name for the player from the list of possible names, and removes it from the possible names"""
+        total_names = len(name_list)
+
+        if total_names == 0:
+            raise ValueError("No names remaining to select from")
+
+        index = Random(seed).randint(0, total_names - 1)
+        return name_list.pop(index)
+
+    def _get_index(self, current_indices: list[int]) -> int:
+        """Returns this player's index, and adds it to the global list of used indices"""
+        if len(current_indices) == 0:
+            highest = -1
+        else:
+            highest = max(current_indices)
+        new_highest = highest + 1
+        current_indices.append(new_highest)
+        return new_highest
+
+
+class HumanPlayer(Player):
+    """The human controlled player in the tournament"""
 
 
 def deal_pockets(remaining_deck: list[tuple], burnt_cards: list[tuple], still_in: list[int]) -> dict:
@@ -2068,7 +2112,8 @@ def main_game():
 if __name__ == "__main__":
     # main_game()
 
-    deck = Deck()
-    # deck.print_deck()
-    deck.shuffle(10)
-    print(deck)
+    seed = 10
+    test_player = Player([0], ["Barry", "Andy", "Mikey", "Sally", "Scotty",
+                         "Mary", "Eddy", "Stevie", "Woody", "Julie", "Suzie", "Ruby", "Judy"])
+    print(test_player._get_name(["Barry", "Andy", "Mikey", "Sally", "Scotty",
+                                 "Mary", "Eddy", "Stevie", "Woody", "Julie", "Suzie", "Ruby", "Judy"], seed))
