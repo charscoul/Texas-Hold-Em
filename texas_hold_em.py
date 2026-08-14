@@ -268,6 +268,28 @@ class Player:
 class HumanPlayer(Player):
     """The human controlled player in the tournament"""
 
+    def __init__(self, current_indices, bot_names: list[str], seed=time()):
+        """Initiates an instance of a human controlled player"""
+        super().__init__(current_indices, bot_names, seed)
+
+    def _get_name(self, name_list: list[str], seed) -> str:
+        """The player inputs their name
+
+        if the name is in the possible names list, it gets removed from the list"""
+        while True:
+            attempt = input("What is your name? ").capitalize()
+
+            if attempt in name_list:
+                name_list.remove(attempt)
+                return attempt
+
+            if len(attempt) not in range(MIN_NAME_LENGTH, MAX_NAME_LENGTH):
+                print(
+                    f"Your must be between {MIN_NAME_LENGTH} and {MAX_NAME_LENGTH} characters\nConsider using a nickname?\n")
+                continue
+
+            return attempt
+
 
 def deal_pockets(remaining_deck: list[tuple], burnt_cards: list[tuple], still_in: list[int]) -> dict:
     """deals two cards to every active player"""

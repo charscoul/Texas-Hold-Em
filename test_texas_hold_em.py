@@ -1,7 +1,10 @@
 
-from texas_hold_em import unique_list, default_rows, Card, Deck, CardGroup, Pocket, Table, Player, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
+from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
+
 import pylint
 import pytest
+
+from support.testing_util import player_chooses
 
 
 @pytest.fixture()
@@ -60,7 +63,7 @@ def new_deck() -> Deck:
 
 
 @pytest.fixture()
-def name_list() -> list[str]:
+def test_names() -> list[str]:
     return ["Barry", "Andy", "Mikey", "Sally", "Scotty", "Mary", "Eddy", "Stevie", "Woody", "Julie", "Suzie", "Ruby", "Judy"]
 
 
@@ -432,17 +435,17 @@ class TestTable:
 class TestPlayer:
     """Player init tests"""
 
-    def test_non_int_index(self, name_list):
+    def test_non_int_index(self, test_names):
         with pytest.raises(TypeError):
-            Player(["0"], name_list)
+            Player(["0"], test_names)
 
     def test_non_str_name(self):
         with pytest.raises(TypeError):
             Player([0, 1, 2], [0, 1, 2])
 
-    def test_non_list_indices(self, name_list):
+    def test_non_list_indices(self, test_names):
         with pytest.raises(TypeError):
-            Player(0, name_list)
+            Player(0, test_names)
 
     def test_non_list_names(self):
         with pytest.raises(TypeError):
@@ -452,37 +455,80 @@ class TestPlayer:
         with pytest.raises(ValueError):
             Player([0, 1], [])
 
-    def test_short_name(self, name_list):
-        name_list.append("DJ")
+    def test_short_name(self, test_names):
+        test_names.append("DJ")
         with pytest.raises(ValueError):
-            Player([0], name_list)
+            Player([0], test_names)
 
-    def test_long_name(self, name_list):
-        name_list.append("Bumbercatch")
+    def test_long_name(self, test_names):
+        test_names.append("Bumbercatch")
         with pytest.raises(ValueError):
-            Player([0], name_list)
+            Player([0], test_names)
 
-    def test_neg_index(self, name_list):
+    def test_neg_index(self, test_names):
         with pytest.raises(ValueError):
-            Player([-1, 0], name_list)
+            Player([-1, 0], test_names)
 
-    def test_first_player(self, no_indexes, name_list):
+    def test_first_player(self, no_indexes, test_names):
         seed = 10
 
-        test_player = Player(no_indexes, name_list, seed)
+        test_player = Player(no_indexes, test_names, seed)
         assert test_player.name == "Julie"
         assert test_player.index == 0
         assert no_indexes == [0]
-        assert "Julie" not in name_list
+        assert "Julie" not in test_names
 
-    def test_normal_player(self, some_indexes, name_list):
+    def test_normal_player(self, some_indexes, test_names):
         seed = 10
 
-        test_player = Player(some_indexes, name_list, seed)
+        test_player = Player(some_indexes, test_names, seed)
         assert test_player.name == "Julie"
         assert test_player.index == 3
         assert some_indexes == [0, 1, 2, 3]
-        assert "Julie" not in name_list
+        assert "Julie" not in test_names
+
+
+class TestHumanPlayer:
+    """Human Player init tests"""
+
+    def test_short_input(self, monkeypatch, capsys, some_indexes, test_names):
+        player_chooses(['Me', "Charlie"], monkeypatch)
+        seed = 10
+
+        human = HumanPlayer(some_indexes, test_names, seed)
+
+        captured_output = capsys.readouterr().out
+        printed_lines = captured_output.split("\n")
+
+        assert f"Your must be between {MIN_NAME_LENGTH} and {MAX_NAME_LENGTH} characters" in printed_lines
+
+    def test_long_input(self, monkeypatch, capsys, some_indexes, test_names):
+        player_chooses(['Humperdoo', "Charlie"], monkeypatch)
+        seed = 10
+
+        human = HumanPlayer(some_indexes, test_names, seed)
+
+        captured_output = capsys.readouterr().out
+        printed_lines = captured_output.split("\n")
+
+        assert f"Your must be between {MIN_NAME_LENGTH} and {MAX_NAME_LENGTH} characters" in printed_lines
+
+    def test_unique_input(self, monkeypatch, some_indexes, test_names):
+        player_chooses(["Charlie"], monkeypatch)
+        seed = 10
+
+        human = HumanPlayer(some_indexes, test_names, seed)
+
+        assert human.name == 'Charlie'
+
+    def test_bot_name(self, monkeypatch, some_indexes, test_names):
+        player_chooses(["Andy"], monkeypatch)
+        seed = 10
+
+        human = HumanPlayer(some_indexes, test_names, seed)
+
+        assert human.name == 'Andy'
+        assert "Andy" not in test_names
 
 
 def test_already_unique_ints():
