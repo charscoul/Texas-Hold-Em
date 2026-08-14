@@ -24,6 +24,14 @@ def unique_list(input_list: list) -> list:
     return unique
 
 
+def default_rows() -> tuple[str]:
+    """Produces the top/ bottom edges and blank rows for the playing card"""
+    edge = ' ------ '
+    blank = '|      |'
+
+    return edge, blank
+
+
 """ Section 1: Defining key elements of the cards """
 
 SUIT_TO_EMOJI = {"H": "❤️", "D": "♦️", "S": "♠️", "C": "♣️"}
@@ -74,6 +82,26 @@ class Card:
     def __str__(self) -> str:
         return f"{CARD_VALUES_DESCRIBED[self.value]} of {CARD_SUITS_DESCRIBED[self.suit]}"
 
+    def _get_detailed_rows(self) -> tuple[str]:
+        """Produces the card string rows with the card details"""
+
+        if self.value == "10":
+            top_row = f'|   {self.value}{self.emoji}|'
+            bottom_row = f'|{self.value}{self.emoji}   |'
+        else:
+            top_row = f'|    {self.value}{self.emoji}|'
+            bottom_row = f'|{self.value}{self.emoji}    |'
+
+        return top_row, bottom_row
+
+    @property
+    def format(self) -> tuple[str]:
+        """Formats card details as a playing card"""
+        edge, blank = default_rows()
+        top, bottom = self._get_detailed_rows()
+
+        return edge, top, blank, blank, blank, bottom, edge
+
 
 class Deck:
     """A deck of cards"""
@@ -103,6 +131,35 @@ class Deck:
 
     def __str__(self) -> str:
         """returns a list of card strings"""
+        return str([str(card) for card in self.cards])
+
+
+class CardGroup:
+    """A collection of cards"""
+
+    def __init__(self, cards: list[Card]):
+        """Initializes an instance of a CardGroup"""
+        self.cards = cards
+
+        # Type Validate inputs
+        if not isinstance(self.cards, list):
+            raise TypeError("cards must be a list")
+        if not all(isinstance(card, Card) for card in self.cards):
+            raise TypeError("Every card in cards must be of type Card")
+
+        # Value Validate inputs
+        if self.cards != unique_list(self.cards):
+            raise ValueError("Duplicate cards cannot exist")
+
+
+class Pocket(CardGroup):
+    def __init__(self, cards: list[Card]):
+        super().__init__(cards)
+
+
+class Table(CardGroup):
+    def __init__(self, cards):
+        super().__init__(cards)
 
 
 def shuffle_deck(full_deck: list[tuple], seed: int = time()) -> list[tuple]:
@@ -140,14 +197,6 @@ def game_deck(seed: int = time()) -> list[tuple]:
 """Displaying your hole cards (referring to as pocket)"""
 
 
-def produce_default_rows() -> tuple[str]:
-    """Produces the top/ bottom edges and blank rows for the playing card"""
-    edge = ' ------ '
-    blank = '|      |'
-
-    return edge, blank
-
-
 def produce_detail_rows(card_tup: tuple[str]) -> tuple[str]:
     """Produces the card string rows with the card details"""
     suit = card_tup[1]
@@ -165,7 +214,7 @@ def produce_detail_rows(card_tup: tuple[str]) -> tuple[str]:
 
 def format_card(card_tup: tuple[str]) -> tuple[str]:
     """Formats card details as a playing card"""
-    edge, blank = produce_default_rows()
+    edge, blank = default_rows()
     top, bottom = produce_detail_rows(card_tup)
 
     return edge, top, blank, blank, blank, bottom, edge
@@ -2061,4 +2110,6 @@ if __name__ == "__main__":
     # main_game()
 
     deck = Deck()
-    deck.print_deck()
+    # deck.print_deck()
+    deck.shuffle(10)
+    print(deck)

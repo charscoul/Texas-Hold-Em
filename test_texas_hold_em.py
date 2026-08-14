@@ -1,5 +1,5 @@
 
-from texas_hold_em import unique_list, Card, Deck, shuffle_deck, fresh_deck, produce_detail_rows, produce_default_rows, print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
+from texas_hold_em import unique_list, default_rows, Card, Deck, CardGroup, shuffle_deck, fresh_deck, produce_detail_rows,  print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
 import pylint
 import pytest
 
@@ -84,6 +84,24 @@ class TestCard:
     def test_string_4(self, ten_of_clubs):
         assert str(ten_of_clubs) == "Ten of Clubs"
 
+    """Card format tests"""
+
+    def test_format_1(self, ace_of_hearts):
+        assert ace_of_hearts.format == (
+            ' ------ ', '|    A❤️|',  '|      |', '|      |', '|      |', '|A❤️    |', ' ------ ')
+
+    def test_format_2(self, jack_of_spades):
+        assert jack_of_spades.format == (
+            ' ------ ', '|    J♠️|',  '|      |', '|      |', '|      |', '|J♠️    |', ' ------ ')
+
+    def test_format_3(self, seven_of_diamonds):
+        assert seven_of_diamonds.format == (
+            ' ------ ', '|    7♦️|',  '|      |', '|      |', '|      |', '|7♦️    |', ' ------ ')
+
+    def test_format_4(self, ten_of_clubs):
+        assert ten_of_clubs.format == (
+            ' ------ ', '|   10♣️|',  '|      |', '|      |', '|      |', '|10♣️   |', ' ------ ')
+
 
 class TestDeck:
     """Deck initiation tests"""
@@ -98,6 +116,41 @@ class TestDeck:
     """Deck shuffle tests"""
 
     def test_shuffle_fresh_deck(self, new_deck, ace_of_hearts, jack_of_spades, seven_of_diamonds, ten_of_clubs):
+        # arrange
+        seed = 10
+
+        # act
+        new_deck.shuffle(seed)
+
+        # assert
+        assert str(new_deck.cards[26]) == str(ace_of_hearts)
+        assert str(new_deck.cards[9]) == str(seven_of_diamonds)
+        assert str(new_deck.cards[29]) == str(jack_of_spades)
+        assert str(new_deck.cards[3]) == str(ten_of_clubs)
+        assert len(new_deck.cards) == 52
+
+
+class TestCardGroup:
+    """CardGroup initialisation tests"""
+
+    def test_non_list(self, seven_of_diamonds):
+        with pytest.raises(TypeError):
+            CardGroup(seven_of_diamonds)
+
+    def test_non_cards(self):
+        with pytest.raises(TypeError):
+            CardGroup([("7", "D")])
+
+    def test_duplicates(self, ace_of_hearts):
+        with pytest.raises(ValueError):
+            CardGroup([ace_of_hearts, ace_of_hearts])
+
+    def test_suitable_list(self, ace_of_hearts, seven_of_diamonds, jack_of_spades):
+        test_group = CardGroup(
+            [ace_of_hearts, seven_of_diamonds, jack_of_spades])
+
+        assert test_group.cards == [ace_of_hearts,
+                                    seven_of_diamonds, jack_of_spades]
 
 
 def test_already_unique_ints():
@@ -116,6 +169,10 @@ def test_unique_mixed_data():
     test_list = [1, "1", "a", "A", 1.0]
 
     assert unique_list(test_list) == test_list
+
+
+def test_default_rows():
+    assert default_rows() == (' ------ ', '|      |')
 
 
 def test_empty_shuffle():
@@ -144,10 +201,6 @@ def test_one_item_shuffle():
 def test_new_deck():
     assert fresh_deck() == [('2', '❤️'), ('3', '❤️'), ('4', '❤️'), ('5', '❤️'), ('6', '❤️'), ('7', '❤️'), ('8', '❤️'), ('9', '❤️'), ('10', '❤️'), ('J', '❤️'), ('Q', '❤️'), ('K', '❤️'), ('A', '❤️'), ('2', '♦️'), ('3', '♦️'), ('4', '♦️'), ('5', '♦️'), ('6', '♦️'), ('7', '♦️'), ('8', '♦️'), ('9', '♦️'), ('10', '♦️'), ('J', '♦️'), ('Q', '♦️'), ('K', '♦️'), ('A', '♦️'),
                             ('2', '♠️'), ('3', '♠️'), ('4', '♠️'), ('5', '♠️'), ('6', '♠️'), ('7', '♠️'), ('8', '♠️'), ('9', '♠️'), ('10', '♠️'), ('J', '♠️'), ('Q', '♠️'), ('K', '♠️'), ('A', '♠️'), ('2', '♣️'), ('3', '♣️'), ('4', '♣️'), ('5', '♣️'), ('6', '♣️'), ('7', '♣️'), ('8', '♣️'), ('9', '♣️'), ('10', '♣️'), ('J', '♣️'), ('Q', '♣️'), ('K', '♣️'), ('A', '♣️')]
-
-
-def test_default_rows():
-    assert produce_default_rows() == (' ------ ', '|      |')
 
 
 def test_picture_rows():
