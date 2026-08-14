@@ -27,6 +27,20 @@ def unique_list(input_list: list) -> list:
 """ Section 1: Defining key elements of the cards """
 
 
+class Card:
+    """A singular playing card"""
+
+    def __init__(self):
+        pass
+
+
+class Deck:
+    """A deck of cards"""
+
+    def __init__(self):
+        pass
+
+
 def shuffle_deck(full_deck: list[tuple], seed: int = time()) -> list[tuple]:
     """shuffles an inputted list"""
     deck_copy = full_deck.copy()
@@ -224,7 +238,6 @@ def deal_to_table(remaining_deck: list[tuple], burnt_cards: list[tuple], table: 
     return table
 
 
-# Hand Hierarchy
 macro_rankings = {"Royal Flush": 1,
                   "Straight Flush": 2,
                   "Four of a Kind": 3,
@@ -235,6 +248,7 @@ macro_rankings = {"Royal Flush": 1,
                   "Two Pair": 8,
                   "Pair": 9,
                   "High Card": 10}
+
 values_scored = {14: 1,
                  13: 2,
                  12: 3,
@@ -248,6 +262,7 @@ values_scored = {14: 1,
                  4: 11,
                  3: 12,
                  2: 13}
+
 values_described = {14: "Ace",
                     13: "King",
                     12: "Queen",
@@ -1979,6 +1994,4 @@ def main_game():
 
 
 if __name__ == "__main__":
-    # main_game()
-    seed = 10
-    print(game_deck(seed))
+    main_game()
