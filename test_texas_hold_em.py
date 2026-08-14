@@ -1,5 +1,5 @@
 
-from texas_hold_em import unique_list, default_rows, Card, Deck, CardGroup, shuffle_deck, fresh_deck, produce_detail_rows,  print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
+from texas_hold_em import unique_list, default_rows, Card, Deck, CardGroup, print_card_list, burn_card, deal_card, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
 import pylint
 import pytest
 
@@ -22,6 +22,11 @@ def jack_of_spades() -> Card:
 @pytest.fixture()
 def ten_of_clubs() -> Card:
     return Card("10", "C")
+
+
+@pytest.fixture()
+def jack_of_diamonds() -> Card:
+    return Card("J", "D")
 
 
 @pytest.fixture()
@@ -152,6 +157,92 @@ class TestCardGroup:
         assert test_group.cards == [ace_of_hearts,
                                     seven_of_diamonds, jack_of_spades]
 
+    """print method tests"""
+
+    def test_print_one_card(self, capsys, seven_of_diamonds):
+        test_group = CardGroup([seven_of_diamonds])
+        test_group.public = False
+
+        test_group.print()
+
+        captured_output = capsys.readouterr().out
+        printed_lines = captured_output.split("\n")
+
+        assert ' ------ ' in printed_lines
+        assert printed_lines.count(' ------ ') == 2
+        assert '|      |' in printed_lines
+        assert printed_lines.count('|      |') == 3
+        assert '|    7♦️|' in printed_lines
+        assert '|7♦️    |' in printed_lines
+
+    def test_print_pocket(self, capsys, seven_of_diamonds, jack_of_spades):
+        test_group = CardGroup([seven_of_diamonds, jack_of_spades])
+        test_group.public = False
+
+        test_group.print()
+
+        captured_output = capsys.readouterr().out
+        printed_lines = captured_output.split("\n")
+
+        assert ' ------   ------ ' in printed_lines
+        assert printed_lines.count(' ------   ------ ') == 2
+        assert '|      | |      |' in printed_lines
+        assert printed_lines.count('|      | |      |') == 3
+        assert '|    7♦️| |    J♠️|' in printed_lines
+        assert '|7♦️    | |J♠️    |' in printed_lines
+
+    def test_print_flop(self, capsys, jack_of_spades, seven_of_diamonds, jack_of_diamonds):
+        test_group = CardGroup(
+            [seven_of_diamonds, jack_of_spades, jack_of_diamonds])
+
+        test_group.print()
+
+        captured_output = capsys.readouterr().out
+        printed_lines = captured_output.split("\n")
+
+        assert '      ------   ------   ------ ' in printed_lines
+        assert printed_lines.count('      ------   ------   ------ ') == 2
+        assert '     |      | |      | |      |' in printed_lines
+        assert printed_lines.count('     |      | |      | |      |') == 3
+        assert '     |    7♦️| |    J♠️| |    J♦️|' in printed_lines
+        assert '     |7♦️    | |J♠️    | |J♦️    |' in printed_lines
+
+    def test_print_turn(self, capsys, jack_of_spades, seven_of_diamonds, jack_of_diamonds, ace_of_hearts):
+        test_group = CardGroup(
+            [seven_of_diamonds, jack_of_spades, jack_of_diamonds, ace_of_hearts])
+
+        test_group.print()
+
+        captured_output = capsys.readouterr().out
+        printed_lines = captured_output.split("\n")
+
+        assert '      ------   ------   ------   ------ ' in printed_lines
+        assert printed_lines.count(
+            '      ------   ------   ------   ------ ') == 2
+        assert '     |      | |      | |      | |      |' in printed_lines
+        assert printed_lines.count(
+            '     |      | |      | |      | |      |') == 3
+        assert '     |    7♦️| |    J♠️| |    J♦️| |    A❤️|' in printed_lines
+        assert '     |7♦️    | |J♠️    | |J♦️    | |A❤️    |' in printed_lines
+
+    def test_print_river(self, capsys, jack_of_spades, seven_of_diamonds, jack_of_diamonds, ace_of_hearts, ten_of_clubs):
+        test_group = CardGroup(
+            [seven_of_diamonds, jack_of_spades, jack_of_diamonds, ace_of_hearts, ten_of_clubs])
+
+        test_group.print()
+
+        captured_output = capsys.readouterr().out
+        printed_lines = captured_output.split("\n")
+
+        assert '      ------   ------   ------   ------   ------ ' in printed_lines
+        assert printed_lines.count(
+            '      ------   ------   ------   ------   ------ ') == 2
+        assert '     |      | |      | |      | |      | |      |' in printed_lines
+        assert printed_lines.count(
+            '     |      | |      | |      | |      | |      |') == 3
+        assert '     |    7♦️| |    J♠️| |    J♦️| |    A❤️| |   10♣️|' in printed_lines
+        assert '     |7♦️    | |J♠️    | |J♦️    | |A❤️    | |10♣️   |' in printed_lines
+
 
 def test_already_unique_ints():
     test_list = [1, 2, 3]
@@ -175,140 +266,11 @@ def test_default_rows():
     assert default_rows() == (' ------ ', '|      |')
 
 
-def test_empty_shuffle():
-    seed = 10
-    deck = []
-
-    assert shuffle_deck(deck, seed) == []
-
-
-def test_fresh_deck_shuffle():
-    seed = 10
-    deck = [('2', '❤️'), ('3', '❤️'), ('4', '❤️'), ('5', '❤️'), ('6', '❤️'), ('7', '❤️'), ('8', '❤️'), ('9', '❤️'), ('10', '❤️'), ('J', '❤️'), ('Q', '❤️'), ('K', '❤️'), ('A', '❤️'), ('2', '♦️'), ('3', '♦️'), ('4', '♦️'), ('5', '♦️'), ('6', '♦️'), ('7', '♦️'), ('8', '♦️'), ('9', '♦️'), ('10', '♦️'), ('J', '♦️'), ('Q', '♦️'), ('K', '♦️'), ('A', '♦️'),
-            ('2', '♠️'), ('3', '♠️'), ('4', '♠️'), ('5', '♠️'), ('6', '♠️'), ('7', '♠️'), ('8', '♠️'), ('9', '♠️'), ('10', '♠️'), ('J', '♠️'), ('Q', '♠️'), ('K', '♠️'), ('A', '♠️'), ('2', '♣️'), ('3', '♣️'), ('4', '♣️'), ('5', '♣️'), ('6', '♣️'), ('7', '♣️'), ('8', '♣️'), ('9', '♣️'), ('10', '♣️'), ('J', '♣️'), ('Q', '♣️'), ('K', '♣️'), ('A', '♣️')]
-
-    assert shuffle_deck(deck, seed) == [('J', '♦️'), ('K', '♠️'), ('3', '♣️'), ('10', '♣️'), ('5', '♣️'), ('5', '♦️'), ('3', '❤️'), ('8', '♠️'), ('5', '❤️'), ('7', '♦️'), ('A', '♦️'), ('9', '♣️'), ('8', '❤️'), ('4', '♠️'), ('10', '♠️'), ('9', '❤️'), ('A', '♠️'), ('7', '♣️'), ('J', '♣️'), ('K', '♦️'), ('7', '❤️'), ('3', '♦️'), ('10', '❤️'), ('10', '♦️'), (
-        'J', '❤️'), ('8', '♣️'), ('A', '❤️'), ('K', '❤️'), ('8', '♦️'), ('J', '♠️'), ('Q', '♣️'), ('2', '♠️'), ('2', '♣️'), ('Q', '♦️'), ('4', '♦️'), ('6', '❤️'), ('9', '♦️'), ('6', '♣️'), ('9', '♠️'), ('K', '♣️'), ('Q', '❤️'), ('4', '♣️'), ('6', '♦️'), ('7', '♠️'), ('5', '♠️'), ('2', '♦️'), ('2', '❤️'), ('A', '♣️'), ('6', '♠️'), ('3', '♠️'), ('4', '❤️'), ('Q', '♠️')]
-
-
-def test_one_item_shuffle():
-    seed = 10
-    deck = [11]
-
-    assert shuffle_deck(deck, seed) == [11]
-
-
-def test_new_deck():
-    assert fresh_deck() == [('2', '❤️'), ('3', '❤️'), ('4', '❤️'), ('5', '❤️'), ('6', '❤️'), ('7', '❤️'), ('8', '❤️'), ('9', '❤️'), ('10', '❤️'), ('J', '❤️'), ('Q', '❤️'), ('K', '❤️'), ('A', '❤️'), ('2', '♦️'), ('3', '♦️'), ('4', '♦️'), ('5', '♦️'), ('6', '♦️'), ('7', '♦️'), ('8', '♦️'), ('9', '♦️'), ('10', '♦️'), ('J', '♦️'), ('Q', '♦️'), ('K', '♦️'), ('A', '♦️'),
-                            ('2', '♠️'), ('3', '♠️'), ('4', '♠️'), ('5', '♠️'), ('6', '♠️'), ('7', '♠️'), ('8', '♠️'), ('9', '♠️'), ('10', '♠️'), ('J', '♠️'), ('Q', '♠️'), ('K', '♠️'), ('A', '♠️'), ('2', '♣️'), ('3', '♣️'), ('4', '♣️'), ('5', '♣️'), ('6', '♣️'), ('7', '♣️'), ('8', '♣️'), ('9', '♣️'), ('10', '♣️'), ('J', '♣️'), ('Q', '♣️'), ('K', '♣️'), ('A', '♣️')]
-
-
-def test_picture_rows():
-    top, bot = produce_detail_rows(("K", "❤️"))
-
-    assert top.count(" ") == 4 and bot.count(" ") == 4
-
-
-def test_ten_rows():
-    top, bot = produce_detail_rows(('10', '♣️'))
-
-    assert top.count(" ") == 3 and bot.count(" ") == 3
-
-
-def test_normal_rows():
-    top, bot = produce_detail_rows(('5', '♦️'))
-
-    assert top.count(" ") == 4 and bot.count(" ") == 4
-
-
 def test_print_no_cards():
     card_list = []
 
     with pytest.raises(IndexError):
         print_card_list(card_list, False)
-
-
-def test_print_one_card(capsys):
-    card_list = [('5', '♦️')]
-
-    print_card_list(card_list, False)
-
-    captured_output = capsys.readouterr().out
-    printed_lines = captured_output.split("\n")
-
-    assert ' ------ ' in printed_lines
-    assert printed_lines.count(' ------ ') == 2
-    assert '|      |' in printed_lines
-    assert printed_lines.count('|      |') == 3
-    assert '|    5♦️|' in printed_lines
-    assert '|5♦️    |' in printed_lines
-
-
-def test_print_pocket(capsys):
-    card_list = [('5', '♦️'), ('3', '♠️')]
-
-    print_card_list(card_list, False)
-
-    captured_output = capsys.readouterr().out
-    printed_lines = captured_output.split("\n")
-
-    assert ' ------   ------ ' in printed_lines
-    assert printed_lines.count(' ------   ------ ') == 2
-    assert '|      | |      |' in printed_lines
-    assert printed_lines.count('|      | |      |') == 3
-    assert '|    5♦️| |    3♠️|' in printed_lines
-    assert '|5♦️    | |3♠️    |' in printed_lines
-
-
-def test_print_flop(capsys):
-    card_list = [('5', '♦️'), ('3', '♠️'), ('J', '♦️')]
-
-    print_card_list(card_list, True)
-
-    captured_output = capsys.readouterr().out
-    printed_lines = captured_output.split("\n")
-
-    assert '      ------   ------   ------ ' in printed_lines
-    assert printed_lines.count('      ------   ------   ------ ') == 2
-    assert '     |      | |      | |      |' in printed_lines
-    assert printed_lines.count('     |      | |      | |      |') == 3
-    assert '     |    5♦️| |    3♠️| |    J♦️|' in printed_lines
-    assert '     |5♦️    | |3♠️    | |J♦️    |' in printed_lines
-
-
-def test_print_turn(capsys):
-    card_list = [('5', '♦️'), ('3', '♠️'), ('J', '♦️'), ('Q', '❤️')]
-
-    print_card_list(card_list, True)
-
-    captured_output = capsys.readouterr().out
-    printed_lines = captured_output.split("\n")
-
-    assert '      ------   ------   ------   ------ ' in printed_lines
-    assert printed_lines.count('      ------   ------   ------   ------ ') == 2
-    assert '     |      | |      | |      | |      |' in printed_lines
-    assert printed_lines.count('     |      | |      | |      | |      |') == 3
-    assert '     |    5♦️| |    3♠️| |    J♦️| |    Q❤️|' in printed_lines
-    assert '     |5♦️    | |3♠️    | |J♦️    | |Q❤️    |' in printed_lines
-
-
-def test_print_river(capsys):
-    card_list = [('5', '♦️'), ('3', '♠️'), ('J', '♦️'),
-                 ('Q', '❤️'), ('4', '❤️')]
-
-    print_card_list(card_list, True)
-
-    captured_output = capsys.readouterr().out
-    printed_lines = captured_output.split("\n")
-
-    assert '      ------   ------   ------   ------   ------ ' in printed_lines
-    assert printed_lines.count(
-        '      ------   ------   ------   ------   ------ ') == 2
-    assert '     |      | |      | |      | |      | |      |' in printed_lines
-    assert printed_lines.count(
-        '     |      | |      | |      | |      | |      |') == 3
-    assert '     |    5♦️| |    3♠️| |    J♦️| |    Q❤️| |    4❤️|' in printed_lines
-    assert '     |5♦️    | |3♠️    | |J♦️    | |Q❤️    | |4❤️    |' in printed_lines
 
 
 def test_burn_start_of_game():

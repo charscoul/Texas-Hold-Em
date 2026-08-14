@@ -44,6 +44,7 @@ CARD_VALUES_DESCRIBED = {'2': "Two", '3': "Three", '4': "Four", '5': "Five", '6'
                          '7': "Seven", '8': "Eight", '9': "Nine", '10': "Ten", 'J': "Jack", 'Q': "Queen", 'K': "King", 'A': "Ace"}
 CARD_SUITS_DESCRIBED = {"H": "Hearts",
                         "D": "Diamonds", "S": "Spades", "C": "Clubs"}
+CARD_ROWS = 7
 
 
 class Card:
@@ -151,6 +152,33 @@ class CardGroup:
         if self.cards != unique_list(self.cards):
             raise ValueError("Duplicate cards cannot exist")
 
+        self.public = True
+
+    def print(self) -> None:
+        """Prints the cards, with an initial indentation if the cards are on the table (public view)"""
+
+        # Validate printability:
+        if len(self.cards) == 0:
+            raise IndexError("No cards to print")
+
+        print_list = []
+        for _ in range(CARD_ROWS):
+            if self.public:
+                print_list.append("     ")
+            else:
+                print_list.append("")
+
+        # add the card's details
+        for card in self.cards:
+            for i in range(CARD_ROWS):
+                print_list[i] += card.format[i]
+                if card is not self.cards[-1]:
+                    print_list[i] += " "
+
+        # print the list
+        for line in print_list:
+            print(line)
+
 
 class Pocket(CardGroup):
     def __init__(self, cards: list[Card]):
@@ -162,65 +190,7 @@ class Table(CardGroup):
         super().__init__(cards)
 
 
-def shuffle_deck(full_deck: list[tuple], seed: int = time()) -> list[tuple]:
-    """shuffles an inputted list"""
-    deck_copy = full_deck.copy()
-    Random(seed).shuffle(deck_copy)
-
-    return deck_copy
-
-
-def fresh_deck() -> list[tuple]:
-    """Creates a fresh, ordered deck of cards
-
-    ordered with high aces to align with card values for scoring"""
-    suits = ["❤️", "♦️", "♠️", "♣️"]
-    values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', "J", "Q", "K", "A"]
-    deck = []
-    for suit in suits:
-        for value in values:
-            deck.append((value, suit))
-
-    return deck
-
-
-def game_deck(seed: int = time()) -> list[tuple]:
-    """Creates a game ready deck of cards"""
-
-    new_deck = fresh_deck()
-
-    shuffled_deck = shuffle_deck(new_deck, seed)
-
-    return shuffled_deck
-
-
 """Displaying your hole cards (referring to as pocket)"""
-
-
-def produce_detail_rows(card_tup: tuple[str]) -> tuple[str]:
-    """Produces the card string rows with the card details"""
-    suit = card_tup[1]
-    value = card_tup[0]
-
-    if value == "10":
-        top_row = f'|   {value}{suit}|'
-        bottom_row = f'|{value}{suit}   |'
-    else:
-        top_row = f'|    {value}{suit}|'
-        bottom_row = f'|{value}{suit}    |'
-
-    return top_row, bottom_row
-
-
-def format_card(card_tup: tuple[str]) -> tuple[str]:
-    """Formats card details as a playing card"""
-    edge, blank = default_rows()
-    top, bottom = produce_detail_rows(card_tup)
-
-    return edge, top, blank, blank, blank, bottom, edge
-
-
-CARD_ROWS = 7
 
 
 def print_card_list(card_list: list[tuple], is_table: bool) -> None:
