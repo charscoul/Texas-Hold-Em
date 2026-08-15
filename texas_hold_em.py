@@ -195,6 +195,17 @@ class CardGroup:
         for line in print_list:
             print(line)
 
+    def __str__(self) -> str:
+        """returns the strings of the cards in order"""
+
+        output = ""
+        for card in self.cards:
+            output += str(card)
+            if card != self.cards[-1]:
+                output += ", "
+
+        return output
+
 
 class Pocket(CardGroup):
     def __init__(self, cards: list[Card]):
@@ -243,6 +254,8 @@ class Player:
 
         self.index = self._get_index(current_indices)
         self.name = self._get_name(possible_names, seed)
+        self.pocket = None
+        self.out = False
 
     def _get_name(self, name_list: list[str], seed: int = time()) -> str:
         """Randomly selects a name for the player from the list of possible names, and removes it from the possible names"""
@@ -263,6 +276,15 @@ class Player:
         new_highest = highest + 1
         current_indices.append(new_highest)
         return new_highest
+
+    def add_pocket(self, pocket: Pocket) -> None:
+        """adds an inputted pocket as an attribute"""
+
+        # type validations
+        if not isinstance(pocket, Pocket):
+            raise TypeError("pocket must be of class Pocket")
+
+        self.pocket = pocket
 
 
 class HumanPlayer(Player):
@@ -308,17 +330,49 @@ class Dealer:
         self.deck = Deck()
         self.deck.shuffle(seed)
 
-    def deal_pockets(self):
-        pass
+    @property
+    def still_in(self) -> list[int]:
+        """returns the indices of the players still in the tournament"""
+
+        output = []
+
+        for player in self.players:
+            if player.out is False:
+                output.append(player.index)
+
+        return output
+
+    def _make_pockets(self) -> dict[int:Pocket]:
+        """returns a dictionary of the pockets to assign"""
+        self.deck.burn()
+
+        indexed_pocket_cards = {}
+
+        # first pass
+        for index in self.still_in:
+            indexed_pocket_cards[index] = [self.deck.deal()]
+
+        # second pass
+        for index in self.still_in:
+            indexed_pocket_cards[index].append(self.deck.deal())
+
+        return {index: Pocket(indexed_pocket_cards[index]) for index in self.still_in}
+
+    def deal_pockets(self) -> None:
+        """deals the pockets to the players still in the tournament"""
+        pockets = self._make_pockets()
+
+        for index in self.still_in:
+            self.players[index].add_pocket(pockets[index])
 
     def deal_to_table(self):
         pass
 
 # Thoughts:
-    # create a dealer class (player_list, deck),
-        # deal_pockets makes a pocket for every active player
-        # requires player class to have get_pockets, use their index to retrieve from dealt cards
-        # requires player class to have active attribute
+    # create a dealer class (player_list, deck) ### Done
+        # deal_pockets gives a pocket to every active player
+        # requires player class to have get_pockets, use their index to retrieve from dealt cards ### Done
+        # requires player class to have active attribute ### Done
         # deal_to_table adds appropriate number of cards to table
         # requires table card getter method
 
@@ -2175,16 +2229,25 @@ def main_game():
 
 if __name__ == "__main__":
     # main_game()
-    current_indexes = []
-    test_names = ["Barry", "Andy", "Mikey", "Sally", "Scotty",
-                  "Mary", "Eddy", "Stevie", "Woody", "Julie", "Suzie", "Ruby", "Judy"]
 
     seed = 10
-    test_player_1 = Player(current_indexes, test_names, seed)
-    print(test_player_1.name)
-    test_player_2 = Player(current_indexes, test_names, seed)
-    print(test_player_2.name)
-    test_player_3 = Player(current_indexes, test_names, seed)
-    print(test_player_3.name)
-    test_player_4 = Player(current_indexes, test_names, seed)
-    print(test_player_4.name)
+
+    no_indexes = []
+    test_names = ["Barry", "Andy", "Mikey", "Sally", "Scotty", "Mary",
+                  "Eddy", "Stevie", "Woody", "Julie", "Suzie", "Ruby", "Judy"]
+
+    julie = Player(no_indexes, test_names, seed)
+    suzie = Player(no_indexes, test_names, seed)
+    judy = Player(no_indexes, test_names, seed)
+    ruby = Player(no_indexes, test_names, seed)
+
+    ladies = [julie, suzie, judy, ruby]
+
+    test_dealer = Dealer(ladies, seed)
+
+    pockets_dict = test_dealer._make_pockets()
+
+    print(pockets_dict[0])
+    print(pockets_dict[1])
+    print(pockets_dict[2])
+    print(pockets_dict[3])

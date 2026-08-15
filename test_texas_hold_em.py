@@ -78,15 +78,70 @@ def some_indexes() -> list[int]:
 
 
 @pytest.fixture()
+def julie(test_names, no_indexes) -> Player:
+    seed = 10
+    return Player(no_indexes, test_names, seed)
+
+
+@pytest.fixture()
+def suzie(test_names, no_indexes) -> Player:
+    # Julie Suzie Judy Ruby
+    seed = 10
+    julie = Player(no_indexes, test_names, seed)
+    return Player(no_indexes, test_names, seed)
+
+
+@pytest.fixture()
+def judy(test_names, no_indexes) -> Player:
+    # Julie Suzie Judy Ruby
+    seed = 10
+    julie = Player(no_indexes, test_names, seed)
+    suzie = Player(no_indexes, test_names, seed)
+    return Player(no_indexes, test_names, seed)
+
+
+@pytest.fixture()
+def ruby(test_names, no_indexes) -> Player:
+    # Julie Suzie Judy Ruby
+    seed = 10
+    julie = Player(no_indexes, test_names, seed)
+    suzie = Player(no_indexes, test_names, seed)
+    judy = Player(no_indexes, test_names, seed)
+    return Player(no_indexes, test_names, seed)
+
+
+@pytest.fixture()
 def ladies(test_names, no_indexes) -> list[Player]:
     # Julie Suzie Judy Ruby
     seed = 10
-    player_1 = Player(no_indexes, test_names, seed)
-    player_2 = Player(no_indexes, test_names, seed)
-    player_3 = Player(no_indexes, test_names, seed)
-    player_4 = Player(no_indexes, test_names, seed)
+    julie = Player(no_indexes, test_names, seed)
+    suzie = Player(no_indexes, test_names, seed)
+    judy = Player(no_indexes, test_names, seed)
+    ruby = Player(no_indexes, test_names, seed)
 
-    return [player_1, player_2, player_3, player_4]
+    return [julie, suzie, judy, ruby]
+
+
+@pytest.fixture()
+def pocket_aces(ace_of_clubs, ace_of_hearts) -> Pocket:
+    return Pocket([ace_of_hearts, ace_of_clubs])
+
+
+@pytest.fixture()
+def basic_flop(ace_of_hearts, seven_of_diamonds, jack_of_spades):
+    return Table(
+        [ace_of_hearts, seven_of_diamonds, jack_of_spades])
+
+
+@pytest.fixture()
+def basic_turn(ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs):
+    return Table(
+        [ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs])
+
+
+def basic_river(ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs, jack_of_diamonds):
+    return Table(
+        [ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs, jack_of_diamonds])
 
 
 class TestCard:
@@ -485,19 +540,37 @@ class TestPlayer:
         seed = 10
 
         test_player = Player(no_indexes, test_names, seed)
+
         assert test_player.name == "Julie"
         assert test_player.index == 0
         assert no_indexes == [0]
         assert "Julie" not in test_names
+        assert test_player.out is False
 
     def test_normal_player(self, some_indexes, test_names):
         seed = 10
 
         test_player = Player(some_indexes, test_names, seed)
+
         assert test_player.name == "Julie"
         assert test_player.index == 3
         assert some_indexes == [0, 1, 2, 3]
         assert "Julie" not in test_names
+        assert test_player.out is False
+
+    """add_pocket method tests"""
+
+    def test_non_pocket(self, julie, ace_of_clubs, ace_of_hearts):
+        with pytest.raises(TypeError):
+            julie.add_pocket([ace_of_hearts, ace_of_clubs])
+
+    def test_other_group(self, julie, basic_flop):
+        with pytest.raises(TypeError):
+            julie.add_pocket(basic_flop)
+
+    def test_aces(self, julie, pocket_aces):
+        julie.add_pocket(pocket_aces)
+        assert julie.pocket == pocket_aces
 
 
 class TestHumanPlayer:
@@ -563,6 +636,81 @@ class TestDealer:
 
     def test_a(self):
         pass
+
+    """still in tests"""
+
+    def test_full_ladies(self, ladies):
+        test_dealer = Dealer(ladies)
+
+        assert test_dealer.still_in == [0, 1, 2, 3]
+
+    def test_two_outs_ladies(self, ladies):
+        test_dealer = Dealer(ladies)
+
+        test_dealer.players[0].out = True
+        test_dealer.players[2].out = True
+
+        assert test_dealer.still_in == [1, 3]
+
+    """make pockets tests"""
+
+    def test_full_ladies_make_pockets(self, ladies):
+        seed = 10
+        test_dealer = Dealer(ladies, seed)
+
+        pockets_dict = test_dealer._make_pockets()
+
+        assert str(pockets_dict[0]) == "King of Spades, Five of Diamonds"
+        assert str(pockets_dict[1]) == "Three of Clubs, Three of Hearts"
+        assert str(pockets_dict[2]) == "Ten of Clubs, Eight of Spades"
+        assert str(pockets_dict[3]) == "Five of Clubs, Five of Hearts"
+
+    def test_two_outs_ladies_make_pockets(self, ladies):
+        seed = 10
+        test_dealer = Dealer(ladies, seed)
+
+        test_dealer.players[0].out = True
+        test_dealer.players[2].out = True
+
+        pockets_dict = test_dealer._make_pockets()
+
+        assert str(pockets_dict[1]) == "King of Spades, Ten of Clubs"
+        assert str(pockets_dict[3]) == "Three of Clubs, Five of Clubs"
+        assert 0 not in pockets_dict.keys()
+        assert 2 not in pockets_dict.keys()
+
+    """deal pockets method"""
+
+    def test_full_ladies_deal_pockets(self, ladies):
+        seed = 10
+        test_dealer = Dealer(ladies, seed)
+
+        test_dealer.deal_pockets()
+
+        assert str(
+            test_dealer.players[0].pocket) == "King of Spades, Five of Diamonds"
+        assert str(
+            test_dealer.players[1].pocket) == "Three of Clubs, Three of Hearts"
+        assert str(
+            test_dealer.players[2].pocket) == "Ten of Clubs, Eight of Spades"
+        assert str(
+            test_dealer.players[3].pocket) == "Five of Clubs, Five of Hearts"
+
+    def test_two_outs_ladies_deal_pockets(self, ladies):
+        seed = 10
+        test_dealer = Dealer(ladies, seed)
+
+        test_dealer.players[0].out = True
+        test_dealer.players[2].out = True
+
+        test_dealer.deal_pockets()
+
+        assert test_dealer.players[0].pocket is None
+        assert str(
+            test_dealer.players[1].pocket) == "King of Spades, Ten of Clubs"
+        assert test_dealer.players[2].pocket is None
+        assert str(
+            test_dealer.players[3].pocket) == "Three of Clubs, Five of Clubs"
 
 
 def test_already_unique_ints():
