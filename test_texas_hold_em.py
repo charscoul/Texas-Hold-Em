@@ -1,5 +1,5 @@
 
-from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
+from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, Dealer, deal_pockets, deal_flop, deal_turn, deal_river, deal_to_table
 
 import pylint
 import pytest
@@ -75,6 +75,18 @@ def no_indexes() -> list:
 @pytest.fixture()
 def some_indexes() -> list[int]:
     return [0, 1, 2]
+
+
+@pytest.fixture()
+def ladies(test_names, no_indexes) -> list[Player]:
+    # Julie Suzie Judy Ruby
+    seed = 10
+    player_1 = Player(no_indexes, test_names, seed)
+    player_2 = Player(no_indexes, test_names, seed)
+    player_3 = Player(no_indexes, test_names, seed)
+    player_4 = Player(no_indexes, test_names, seed)
+
+    return [player_1, player_2, player_3, player_4]
 
 
 class TestCard:
@@ -529,6 +541,28 @@ class TestHumanPlayer:
 
         assert test_human.name == 'Andy'
         assert "Andy" not in test_names
+
+
+class TestDealer:
+    """Dealer init tests"""
+
+    def test_success_ladies(self, ladies, ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs):
+        seed = 10
+
+        # act
+        dealer_attempt = Dealer(ladies, seed)
+
+        # assert
+        assert str(dealer_attempt.deck.cards[26]) == str(ace_of_hearts)
+        assert str(dealer_attempt.deck.cards[9]) == str(seven_of_diamonds)
+        assert str(dealer_attempt.deck.cards[29]) == str(jack_of_spades)
+        assert str(dealer_attempt.deck.cards[3]) == str(ten_of_clubs)
+        assert len(dealer_attempt.deck.cards) == 52
+
+        assert dealer_attempt.players == ladies
+
+    def test_a(self):
+        pass
 
 
 def test_already_unique_ints():

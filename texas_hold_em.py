@@ -290,13 +290,37 @@ class HumanPlayer(Player):
 
             return attempt
 
+
+class Dealer:
+    """A helper class to deal cards to players"""
+
+    def __init__(self, players: list[Player], seed: int = time()):
+        """Initiates an instance of the dealer class"""
+
+        self.players = players
+
+        # Type validate inputs
+        if not isinstance(self.players, list):
+            raise TypeError("players must be a list")
+        if not all(isinstance(player, Player) for player in self.players):
+            raise TypeError("all players must be of class Player")
+
+        self.deck = Deck()
+        self.deck.shuffle(seed)
+
+    def deal_pockets(self):
+        pass
+
+    def deal_to_table(self):
+        pass
+
 # Thoughts:
     # create a dealer class (player_list, deck),
         # deal_pockets makes a pocket for every active player
-            # requires player class to have get_pockets, use their index to retrieve from dealt cards
-            # requires player class to have active attribute
+        # requires player class to have get_pockets, use their index to retrieve from dealt cards
+        # requires player class to have active attribute
         # deal_to_table adds appropriate number of cards to table
-            # requires table card getter method
+        # requires table card getter method
 
     # create CardGroup scorer method
 
@@ -2151,9 +2175,16 @@ def main_game():
 
 if __name__ == "__main__":
     # main_game()
+    current_indexes = []
+    test_names = ["Barry", "Andy", "Mikey", "Sally", "Scotty",
+                  "Mary", "Eddy", "Stevie", "Woody", "Julie", "Suzie", "Ruby", "Judy"]
 
     seed = 10
-    test_player = Player([0], ["Barry", "Andy", "Mikey", "Sally", "Scotty",
-                         "Mary", "Eddy", "Stevie", "Woody", "Julie", "Suzie", "Ruby", "Judy"])
-    print(test_player._get_name(["Barry", "Andy", "Mikey", "Sally", "Scotty",
-                                 "Mary", "Eddy", "Stevie", "Woody", "Julie", "Suzie", "Ruby", "Judy"], seed))
+    test_player_1 = Player(current_indexes, test_names, seed)
+    print(test_player_1.name)
+    test_player_2 = Player(current_indexes, test_names, seed)
+    print(test_player_2.name)
+    test_player_3 = Player(current_indexes, test_names, seed)
+    print(test_player_3.name)
+    test_player_4 = Player(current_indexes, test_names, seed)
+    print(test_player_4.name)
