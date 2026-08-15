@@ -217,16 +217,26 @@ class Pocket(CardGroup):
 
 
 class Table(CardGroup):
-    def __init__(self, cards):
-        super().__init__(cards)
+    def __init__(self, flop: list[Card]):
+        super().__init__(flop)
         self.public = True
 
         # additional length restrictions
         if len(self.cards) not in TABLE_SIZES:
             raise ValueError("The table must contain 3, 4 or 5 cards")
 
-    def add_card(self, added_card) -> None:
-        pass
+    def _add_card(self, card: Card) -> None:
+        """Adds a card to the table"""
+
+        # validate inputs
+        if not isinstance(card, Card):
+            raise TypeError("Card must be of type Card")
+        if card in self.cards:
+            raise ValueError("Duplicate cards cannot exist")
+        if len(self.cards) >= 5:
+            raise ValueError("Cannot add cards to a full table")
+
+        self.cards.append(card)
 
 
 class Player:
@@ -329,6 +339,7 @@ class Dealer:
 
         self.deck = Deck()
         self.deck.shuffle(seed)
+        self.table = None
 
     @property
     def still_in(self) -> list[int]:
@@ -344,6 +355,9 @@ class Dealer:
 
     def _make_pockets(self) -> dict[int:Pocket]:
         """returns a dictionary of the pockets to assign"""
+        if len(self.still_in) == 0:
+            raise IndexError("No indexes available for remaining players")
+
         self.deck.burn()
 
         indexed_pocket_cards = {}
@@ -365,16 +379,68 @@ class Dealer:
         for index in self.still_in:
             self.players[index].add_pocket(pockets[index])
 
+    def _deal_flop(self) -> None:
+        """Creates a table, filled with the flop"""
+        # validations
+        if self.table is not None:
+            raise ValueError("Cannot deal flop to an existing table")
+
+        self.deck.burn()
+
+        flop = []
+        for _ in range(FLOP_SIZE):
+            flop.append(self.deck.deal())
+
+        self.table = Table(flop)
+
+    def _deal_turn(self) -> None:
+        """Adds a card to the flop"""
+        # validations
+        if not isinstance(self.table, Table):
+            raise TypeError("table must be of type Table")
+        if len(self.table.cards) != FLOP_SIZE:
+            raise ValueError("Cannot deal turn to anything other than a flop")
+
+        self.deck.burn()
+
+        turn_card = self.deck.deal()
+
+        self.table._add_card(turn_card)
+
+    def _deal_river(self) -> None:
+        """Adds a card to the turn"""
+        # validations
+        if not isinstance(self.table, Table):
+            raise TypeError("table must be of type Table")
+        if len(self.table.cards) != TURN_SIZE:
+            raise ValueError("Cannot deal turn to anything other than a turn")
+
+        self.deck.burn()
+
+        river_card = self.deck.deal()
+
+        self.table._add_card(river_card)
+
     def deal_to_table(self):
-        pass
+        """Deals to table appropriately depending on state of table"""
+
+        if self.table is None:
+            self._deal_flop()
+        elif len(self.table.cards) == FLOP_SIZE:
+            self._deal_turn()
+        elif len(self.table.cards) == TURN_SIZE:
+            self.deal_river()
+        else:
+            raise ValueError("Can only deal to empty table, flop or turn")
 
 # Thoughts:
     # create a dealer class (player_list, deck) ### Done
-        # deal_pockets gives a pocket to every active player
+        # deal_pockets gives a pocket to every active player ### Done
         # requires player class to have get_pockets, use their index to retrieve from dealt cards ### Done
         # requires player class to have active attribute ### Done
+
         # deal_to_table adds appropriate number of cards to table
-        # requires table card getter method
+        # requires table card getter method ### Done
 
     # create CardGroup scorer method
 
@@ -385,76 +451,6 @@ class Dealer:
     # dealer compare (find winner)
 
     # dealer nuts
-
-
-def deal_pockets(remaining_deck: list[tuple], burnt_cards: list[tuple], still_in: list[int]) -> dict:
-    """deals two cards to every active player"""
-    pockets = {}
-    burn_card(remaining_deck, burnt_cards)
-
-    if len(still_in) == 0:
-        raise IndexError("No indexes still in")
-
-    for active_index in still_in:
-        pockets[active_index] = []
-        card = deal_card(remaining_deck)
-        pockets[active_index].append(card)
-
-    for active_index in still_in:
-        card = deal_card(remaining_deck)
-        pockets[active_index].append(card)
-
-    return pockets
-
-
-FLOP_COUNT = 3
-
-
-def deal_flop(remaining_deck: list[tuple], burnt_cards: list[tuple]) -> list[tuple]:
-    """Deals the first three cards to the table"""
-
-    burn_card(remaining_deck, burnt_cards)
-    flop = []
-    for _ in range(FLOP_COUNT):
-        card = deal_card(remaining_deck)
-        flop.append(card)
-
-    return flop
-
-
-TURN_COUNT = 4
-
-
-def deal_turn(remaining_deck: list[tuple], burnt_cards: list[tuple], flop: list[tuple]) -> list[tuple]:
-    """Deals the fourth card to the table"""
-
-    if len(flop) != FLOP_COUNT:
-        raise ValueError(
-            "Cannot deal turn unless exactly three cards showing on table")
-
-    burn_card(remaining_deck, burnt_cards)
-    card = deal_card(remaining_deck)
-
-    turn = flop.copy()
-    turn.append(card)
-
-    return turn
-
-
-def deal_river(remaining_deck: list[tuple], burnt_cards: list[tuple], turn: list[tuple]) -> list[tuple]:
-    """Deals the final card to the table"""
-
-    if len(turn) != TURN_COUNT:
-        raise ValueError(
-            "Cannot deal river unless exactly four cards showing on table")
-
-    burn_card(remaining_deck, burnt_cards)
-    card = deal_card(remaining_deck)
-
-    river = turn.copy()
-    river.append(card)
-
-    return river
 
 
 def deal_to_table(remaining_deck: list[tuple], burnt_cards: list[tuple], table: list[tuple]) -> list[tuple]:
