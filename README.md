@@ -1,3 +1,5 @@
+To play, run python3 texas_hold_em.py in the terminal
+
 The .py file in this repository is the code to run a player vs computer tournament of Texas Hold-em Poker. This is my Capstone project for Sigma Labs
 
 The tournament is completely terminal based, using numerical inputs to provide set-up information for the game, navigate between actions, and set stakes for raising bets.
