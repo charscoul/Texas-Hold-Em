@@ -1,15 +1,67 @@
-
-from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, Dealer, deal_to_table
-
 import pylint
 import pytest
 
 from support.testing_util import player_chooses
 
+from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, Dealer, Hand
+
+
+"""Standard function tests"""
+
+
+def test_already_unique_ints():
+    test_list = [1, 2, 3]
+
+    assert unique_list(test_list) == test_list
+
+
+def test_not_unique_ints():
+    test_list = [1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 777, 7, 5, 5]
+
+    assert unique_list(test_list) == [1, 2, 3, 4, 777, 7, 5]
+
+
+def test_unique_mixed_data():
+    test_list = [1, "1", "a", "A", 1.0]
+
+    assert unique_list(test_list) == test_list
+
+
+def test_default_rows():
+    assert default_rows() == (' ------ ', '|      |')
+
+
+"""instituting fixtures"""
+
 
 @pytest.fixture()
 def ace_of_hearts() -> Card:
     return Card("A", "H")
+
+
+@pytest.fixture()
+def king_of_hearts() -> Card:
+    return Card("K", "H")
+
+
+@pytest.fixture()
+def queen_of_hearts() -> Card:
+    return Card("Q", "H")
+
+
+@pytest.fixture()
+def jack_of_hearts() -> Card:
+    return Card("J", "H")
+
+
+@pytest.fixture()
+def ten_of_hearts() -> Card:
+    return Card("10", "H")
+
+
+@pytest.fixture()
+def nine_of_hearts() -> Card:
+    return Card("9", "H")
 
 
 @pytest.fixture()
@@ -20,6 +72,11 @@ def two_of_hearts() -> Card:
 @pytest.fixture()
 def three_of_hearts() -> Card:
     return Card("3", "H")
+
+
+@pytest.fixture()
+def three_of_spades() -> Card:
+    return Card("3", "S")
 
 
 @pytest.fixture()
@@ -50,6 +107,11 @@ def ace_of_clubs() -> Card:
 @pytest.fixture()
 def jack_of_diamonds() -> Card:
     return Card("J", "D")
+
+
+@pytest.fixture()
+def jack_of_clubs() -> Card:
+    return Card("J", "C")
 
 
 @pytest.fixture()
@@ -143,6 +205,59 @@ def basic_turn(ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs):
 def basic_river(ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs, jack_of_diamonds):
     return Table(
         [ace_of_hearts, seven_of_diamonds, jack_of_spades, ten_of_clubs, jack_of_diamonds])
+
+
+@pytest.fixture()
+def ex_royal_flush(ten_of_hearts, jack_of_hearts, queen_of_hearts, king_of_hearts, ace_of_hearts):
+    return Hand([ten_of_hearts, jack_of_hearts, queen_of_hearts, ace_of_hearts, king_of_hearts])
+
+
+@pytest.fixture()
+def ex_straight_flush(ten_of_hearts, jack_of_hearts, queen_of_hearts, king_of_hearts, nine_of_hearts):
+    return Hand([ten_of_hearts, jack_of_hearts, queen_of_hearts, nine_of_hearts, king_of_hearts])
+
+
+@pytest.fixture()
+def ex_flush(ten_of_hearts, two_of_hearts, queen_of_hearts, king_of_hearts, nine_of_hearts):
+    return Hand([ten_of_hearts, two_of_hearts, queen_of_hearts, nine_of_hearts, king_of_hearts])
+
+
+@pytest.fixture()
+def ex_straight(ten_of_hearts, jack_of_diamonds, queen_of_hearts, king_of_hearts, ace_of_clubs):
+    return Hand([ten_of_hearts, jack_of_diamonds, queen_of_hearts, ace_of_clubs, king_of_hearts])
+
+
+@pytest.fixture()
+def ex_foak(jack_of_clubs, jack_of_diamonds, jack_of_hearts, jack_of_spades, three_of_hearts):
+    return Hand([jack_of_clubs, jack_of_diamonds, jack_of_hearts, jack_of_spades, three_of_hearts])
+
+
+@pytest.fixture()
+def ex_full_house(jack_of_clubs, three_of_spades, jack_of_hearts, jack_of_spades, three_of_hearts):
+    return Hand([jack_of_clubs, three_of_spades, jack_of_hearts, jack_of_spades, three_of_hearts])
+
+
+@pytest.fixture()
+def ex_toak(jack_of_clubs, seven_of_diamonds, jack_of_hearts, jack_of_spades, three_of_hearts):
+    return Hand([jack_of_clubs, seven_of_diamonds, jack_of_hearts, jack_of_spades, three_of_hearts])
+
+
+@pytest.fixture()
+def ex_two_pair(jack_of_clubs, three_of_spades, seven_of_diamonds, jack_of_spades, three_of_hearts):
+    return Hand([jack_of_clubs, three_of_spades, seven_of_diamonds, jack_of_spades, three_of_hearts])
+
+
+@pytest.fixture()
+def ex_pair(jack_of_clubs, three_of_spades, seven_of_diamonds, queen_of_hearts, three_of_hearts):
+    return Hand([jack_of_clubs, three_of_spades, seven_of_diamonds, queen_of_hearts, three_of_hearts])
+
+
+@pytest.fixture()
+def ex_high_card(jack_of_clubs, three_of_spades, seven_of_diamonds, queen_of_hearts, ten_of_clubs):
+    return Hand([jack_of_clubs, three_of_spades, seven_of_diamonds, queen_of_hearts, ten_of_clubs])
+
+
+"""Testing Classes"""
 
 
 class TestCard:
@@ -793,7 +908,7 @@ class TestDealer:
         with pytest.raises(ValueError):
             test_dealer._deal_river()
 
-    def test_standard_turn(self, ladies):
+    def test_standard_river(self, ladies):
         seed = 10
         test_dealer = Dealer(ladies, seed)
 
@@ -808,91 +923,93 @@ class TestDealer:
     """deal_to_table tests"""
 
     def test_deal_to_empty(self, ladies):
-        pass
+        seed = 10
+        test_dealer = Dealer(ladies, seed)
+
+        test_dealer.deal_to_table()
+
+        assert str(
+            test_dealer.table) == "King of Spades, Three of Clubs, Ten of Clubs"
+        assert isinstance(test_dealer.table, Table) is True
 
     def test_deal_to_flop(self, ladies):
-        pass
+        seed = 10
+        test_dealer = Dealer(ladies, seed)
+
+        test_dealer.deal_to_table()
+        test_dealer.deal_to_table()
+
+        assert str(
+            test_dealer.table) == "King of Spades, Three of Clubs, Ten of Clubs, Five of Diamonds"
+        assert isinstance(test_dealer.table, Table) is True
 
     def test_deal_to_turn(self, ladies):
-        pass
+        seed = 10
+        test_dealer = Dealer(ladies, seed)
+
+        test_dealer.deal_to_table()
+        test_dealer.deal_to_table()
+        test_dealer.deal_to_table()
+
+        assert str(
+            test_dealer.table) == "King of Spades, Three of Clubs, Ten of Clubs, Five of Diamonds, Eight of Spades"
+        assert isinstance(test_dealer.table, Table) is True
 
     def test_deal_to_river(self, ladies):
-        pass
+        seed = 10
+        test_dealer = Dealer(ladies, seed)
+
+        test_dealer.deal_to_table()
+        test_dealer.deal_to_table()
+        test_dealer.deal_to_table()
+
+        with pytest.raises(ValueError):
+            test_dealer.deal_to_table()
 
 
-def test_already_unique_ints():
-    test_list = [1, 2, 3]
+class TestHand:
+    """Testing flush"""
 
-    assert unique_list(test_list) == test_list
+    def test_flush_attribute(self, ex_flush, ex_foak, ex_full_house, ex_high_card, ex_pair, ex_royal_flush, ex_straight, ex_straight_flush, ex_toak, ex_two_pair):
+        assert ex_flush._flush is True
+        assert ex_foak._flush is False
+        assert ex_full_house._flush is False
+        assert ex_high_card._flush is False
+        assert ex_pair._flush is False
+        assert ex_royal_flush._flush is True
+        assert ex_straight._flush is False
+        assert ex_straight_flush._flush is True
+        assert ex_toak._flush is False
+        assert ex_two_pair._flush is False
 
+    """testing unique values"""
 
-def test_not_unique_ints():
-    test_list = [1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 777, 7, 5, 5]
+    def test_unique_values(self, ex_flush, ex_foak, ex_full_house, ex_high_card, ex_pair, ex_royal_flush, ex_straight, ex_straight_flush, ex_toak, ex_two_pair):
+        assert ex_flush._unique_values == 5
+        assert ex_foak._unique_values == 2
+        assert ex_full_house._unique_values == 2
+        assert ex_high_card._unique_values == 5
+        assert ex_pair._unique_values == 4
+        assert ex_royal_flush._unique_values == 5
+        assert ex_straight._unique_values == 5
+        assert ex_straight_flush._unique_values == 5
+        assert ex_toak._unique_values == 3
+        assert ex_two_pair._unique_values == 3
 
-    assert unique_list(test_list) == [1, 2, 3, 4, 777, 7, 5]
+    """testing straight status"""
 
+    def test_straight_attribute(self, ex_flush, ex_foak, ex_full_house, ex_high_card, ex_pair, ex_royal_flush, ex_straight, ex_straight_flush, ex_toak, ex_two_pair):
+        assert ex_flush._straight is False
+        assert ex_foak._straight is False
+        assert ex_full_house._straight is False
+        assert ex_high_card._straight is False
+        assert ex_pair._straight is False
+        assert ex_royal_flush._straight is True
+        assert ex_straight._straight is True
+        assert ex_straight_flush._straight is True
+        assert ex_toak._straight is False
+        assert ex_two_pair._straight is False
 
-def test_unique_mixed_data():
-    test_list = [1, "1", "a", "A", 1.0]
+    """testing straight flush status"""
 
-    assert unique_list(test_list) == test_list
-
-
-def test_default_rows():
-    assert default_rows() == (' ------ ', '|      |')
-
-###################################
-
-
-# def test_deal_to_empty():
-#     remaining_deck = [('J', '♦️'), ('K', '♠️'), ('3', '♣️'), ('10', '♣️'), ('5', '♣️'), ('5', '♦️'), ('3', '❤️'), ('8', '♠️'), ('5', '❤️'), ('7', '♦️'), ('A', '♦️'), ('9', '♣️'), ('8', '❤️'), ('4', '♠️'), ('10', '♠️'), ('9', '❤️'), ('A', '♠️'), ('7', '♣️'), ('J', '♣️'), ('K', '♦️'), ('7', '❤️'), ('3', '♦️'), ('10', '❤️'), ('10', '♦️'), (
-#         'J', '❤️'), ('8', '♣️'), ('A', '❤️'), ('K', '❤️'), ('8', '♦️'), ('J', '♠️'), ('Q', '♣️'), ('2', '♠️'), ('2', '♣️'), ('Q', '♦️'), ('4', '♦️'), ('6', '❤️'), ('9', '♦️'), ('6', '♣️'), ('9', '♠️'), ('K', '♣️'), ('Q', '❤️'), ('4', '♣️'), ('6', '♦️'), ('7', '♠️'), ('5', '♠️'), ('2', '♦️'), ('2', '❤️'), ('A', '♣️'), ('6', '♠️'), ('3', '♠️'), ('4', '❤️'), ('Q', '♠️')]
-#     burnt_cards = []
-#     table = []
-
-#     table = deal_to_table(remaining_deck, burnt_cards, table)
-
-#     assert remaining_deck == [('5', '♣️'), ('5', '♦️'), ('3', '❤️'), ('8', '♠️'), ('5', '❤️'), ('7', '♦️'), ('A', '♦️'), ('9', '♣️'), ('8', '❤️'), ('4', '♠️'), ('10', '♠️'), ('9', '❤️'), ('A', '♠️'), ('7', '♣️'), ('J', '♣️'), ('K', '♦️'), ('7', '❤️'), ('3', '♦️'), ('10', '❤️'), ('10', '♦️'), (
-#         'J', '❤️'), ('8', '♣️'), ('A', '❤️'), ('K', '❤️'), ('8', '♦️'), ('J', '♠️'), ('Q', '♣️'), ('2', '♠️'), ('2', '♣️'), ('Q', '♦️'), ('4', '♦️'), ('6', '❤️'), ('9', '♦️'), ('6', '♣️'), ('9', '♠️'), ('K', '♣️'), ('Q', '❤️'), ('4', '♣️'), ('6', '♦️'), ('7', '♠️'), ('5', '♠️'), ('2', '♦️'), ('2', '❤️'), ('A', '♣️'), ('6', '♠️'), ('3', '♠️'), ('4', '❤️'), ('Q', '♠️')]
-#     assert burnt_cards == [('J', '♦️')]
-#     assert table == [('K', '♠️'), ('3', '♣️'), ('10', '♣️')]
-
-
-# def test_deal_to_3():
-#     remaining_deck = [('5', '♣️'), ('5', '♦️'), ('3', '❤️'), ('8', '♠️'), ('5', '❤️'), ('7', '♦️'), ('A', '♦️'), ('9', '♣️'), ('8', '❤️'), ('4', '♠️'), ('10', '♠️'), ('9', '❤️'), ('A', '♠️'), ('7', '♣️'), ('J', '♣️'), ('K', '♦️'), ('7', '❤️'), ('3', '♦️'), ('10', '❤️'), ('10', '♦️'), (
-#         'J', '❤️'), ('8', '♣️'), ('A', '❤️'), ('K', '❤️'), ('8', '♦️'), ('J', '♠️'), ('Q', '♣️'), ('2', '♠️'), ('2', '♣️'), ('Q', '♦️'), ('4', '♦️'), ('6', '❤️'), ('9', '♦️'), ('6', '♣️'), ('9', '♠️'), ('K', '♣️'), ('Q', '❤️'), ('4', '♣️'), ('6', '♦️'), ('7', '♠️'), ('5', '♠️'), ('2', '♦️'), ('2', '❤️'), ('A', '♣️'), ('6', '♠️'), ('3', '♠️'), ('4', '❤️'), ('Q', '♠️')]
-#     burnt_cards = [('J', '♦️')]
-#     table = [('K', '♠️'), ('3', '♣️'), ('10', '♣️')]
-
-#     table = deal_to_table(remaining_deck, burnt_cards, table)
-
-#     assert remaining_deck == [('3', '❤️'), ('8', '♠️'), ('5', '❤️'), ('7', '♦️'), ('A', '♦️'), ('9', '♣️'), ('8', '❤️'), ('4', '♠️'), ('10', '♠️'), ('9', '❤️'), ('A', '♠️'), ('7', '♣️'), ('J', '♣️'), ('K', '♦️'), ('7', '❤️'), ('3', '♦️'), ('10', '❤️'), ('10', '♦️'), (
-#         'J', '❤️'), ('8', '♣️'), ('A', '❤️'), ('K', '❤️'), ('8', '♦️'), ('J', '♠️'), ('Q', '♣️'), ('2', '♠️'), ('2', '♣️'), ('Q', '♦️'), ('4', '♦️'), ('6', '❤️'), ('9', '♦️'), ('6', '♣️'), ('9', '♠️'), ('K', '♣️'), ('Q', '❤️'), ('4', '♣️'), ('6', '♦️'), ('7', '♠️'), ('5', '♠️'), ('2', '♦️'), ('2', '❤️'), ('A', '♣️'), ('6', '♠️'), ('3', '♠️'), ('4', '❤️'), ('Q', '♠️')]
-#     assert burnt_cards == [('J', '♦️'), ('5', '♣️')]
-#     assert table == [('K', '♠️'), ('3', '♣️'), ('10', '♣️'), ('5', '♦️')]
-
-
-# def test_deal_to_4():
-#     remaining_deck = [('3', '❤️'), ('8', '♠️'), ('5', '❤️'), ('7', '♦️'), ('A', '♦️'), ('9', '♣️'), ('8', '❤️'), ('4', '♠️'), ('10', '♠️'), ('9', '❤️'), ('A', '♠️'), ('7', '♣️'), ('J', '♣️'), ('K', '♦️'), ('7', '❤️'), ('3', '♦️'), ('10', '❤️'), ('10', '♦️'), (
-#         'J', '❤️'), ('8', '♣️'), ('A', '❤️'), ('K', '❤️'), ('8', '♦️'), ('J', '♠️'), ('Q', '♣️'), ('2', '♠️'), ('2', '♣️'), ('Q', '♦️'), ('4', '♦️'), ('6', '❤️'), ('9', '♦️'), ('6', '♣️'), ('9', '♠️'), ('K', '♣️'), ('Q', '❤️'), ('4', '♣️'), ('6', '♦️'), ('7', '♠️'), ('5', '♠️'), ('2', '♦️'), ('2', '❤️'), ('A', '♣️'), ('6', '♠️'), ('3', '♠️'), ('4', '❤️'), ('Q', '♠️')]
-#     burnt_cards = [('J', '♦️'), ('5', '♣️')]
-#     table = [('K', '♠️'), ('3', '♣️'), ('10', '♣️'), ('5', '♦️')]
-
-#     table = deal_to_table(remaining_deck, burnt_cards, table)
-
-#     assert remaining_deck == [('5', '❤️'), ('7', '♦️'), ('A', '♦️'), ('9', '♣️'), ('8', '❤️'), ('4', '♠️'), ('10', '♠️'), ('9', '❤️'), ('A', '♠️'), ('7', '♣️'), ('J', '♣️'), ('K', '♦️'), ('7', '❤️'), ('3', '♦️'), ('10', '❤️'), ('10', '♦️'), (
-#         'J', '❤️'), ('8', '♣️'), ('A', '❤️'), ('K', '❤️'), ('8', '♦️'), ('J', '♠️'), ('Q', '♣️'), ('2', '♠️'), ('2', '♣️'), ('Q', '♦️'), ('4', '♦️'), ('6', '❤️'), ('9', '♦️'), ('6', '♣️'), ('9', '♠️'), ('K', '♣️'), ('Q', '❤️'), ('4', '♣️'), ('6', '♦️'), ('7', '♠️'), ('5', '♠️'), ('2', '♦️'), ('2', '❤️'), ('A', '♣️'), ('6', '♠️'), ('3', '♠️'), ('4', '❤️'), ('Q', '♠️')]
-#     assert burnt_cards == [('J', '♦️'), ('5', '♣️'), ('3', '❤️')]
-#     assert table == [('K', '♠️'), ('3', '♣️'), ('10', '♣️'),
-#                      ('5', '♦️'), ('8', '♠️')]
-
-
-# def test_deal_to_5():
-#     remaining_deck = [('5', '❤️'), ('7', '♦️'), ('A', '♦️'), ('9', '♣️'), ('8', '❤️'), ('4', '♠️'), ('10', '♠️'), ('9', '❤️'), ('A', '♠️'), ('7', '♣️'), ('J', '♣️'), ('K', '♦️'), ('7', '❤️'), ('3', '♦️'), ('10', '❤️'), ('10', '♦️'), (
-#         'J', '❤️'), ('8', '♣️'), ('A', '❤️'), ('K', '❤️'), ('8', '♦️'), ('J', '♠️'), ('Q', '♣️'), ('2', '♠️'), ('2', '♣️'), ('Q', '♦️'), ('4', '♦️'), ('6', '❤️'), ('9', '♦️'), ('6', '♣️'), ('9', '♠️'), ('K', '♣️'), ('Q', '❤️'), ('4', '♣️'), ('6', '♦️'), ('7', '♠️'), ('5', '♠️'), ('2', '♦️'), ('2', '❤️'), ('A', '♣️'), ('6', '♠️'), ('3', '♠️'), ('4', '❤️'), ('Q', '♠️')]
-#     burnt_cards = [('J', '♦️'), ('5', '♣️'), ('3', '❤️')]
-#     table = [('K', '♠️'), ('3', '♣️'), ('10', '♣️'),
-#              ('5', '♦️'), ('8', '♠️')]
-
-#     with pytest.raises(ValueError):
-#         table = deal_to_table(remaining_deck, burnt_cards, table)
+    # use the thing with the brackets

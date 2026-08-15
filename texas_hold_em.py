@@ -37,6 +37,16 @@ CARD_VALUES = ['2', '3', '4', '5', '6',
 CARD_SUITS = ["H", "D", "S", "C"]
 CARD_VALUES_RANKED = {'2': 13, '3': 12, '4': 11, '5': 10, '6': 9,
                       '7': 8, '8': 7, '9': 6, '10': 5, 'J': 4, 'Q': 3, 'K': 2, 'A': 1}
+HAND_TYPES_RANKED = {"Royal Flush": 1,
+                     "Straight Flush": 2,
+                     "Four of a Kind": 3,
+                     "Full House": 4,
+                     "Flush": 5,
+                     "Straight": 6,
+                     "Three of a Kind": 7,
+                     "Two Pair": 8,
+                     "Pair": 9,
+                     "High Card": 10}
 CARD_VALUES_DESCRIBED = {'2': "Two", '3': "Three", '4': "Four", '5': "Five", '6': "Six",
                          '7': "Seven", '8': "Eight", '9': "Nine", '10': "Ten", 'J': "Jack", 'Q': "Queen", 'K': "King", 'A': "Ace"}
 CARD_SUITS_DESCRIBED = {"H": "Hearts",
@@ -429,19 +439,241 @@ class Dealer:
         elif len(self.table.cards) == FLOP_SIZE:
             self._deal_turn()
         elif len(self.table.cards) == TURN_SIZE:
-            self.deal_river()
+            self._deal_river()
         else:
             raise ValueError("Can only deal to empty table, flop or turn")
 
+
+class Hand(CardGroup):
+    """A playable hand, consisting of 5 cards, with the ability to score"""
+
+    def __init__(self, cards: list[Card]):
+        """Initiates an instance of a hand"""
+        super().__init__(cards)
+
+        # extra validations
+        if len(self.cards) != 5:
+            raise ValueError("Hands must contain exactly 5 cards")
+
+        self.public = True
+
+        # store functional attributes
+        self._value_ranks = sorted([CARD_VALUES_RANKED[card.value]
+                                    for card in self.cards])
+
+        self._suits = [card.suit for card in self.cards]
+
+        self._unique_ranks = unique_list(self._value_ranks)
+        self._unique_count = len(unique_list)
+
+        self.hand_type = None
+        self.kickers = None
+
+    @property
+    def _flush(self) -> bool:
+        """Returns a boolean for whether a hand is a flush"""
+        first_suit = self._suits[0]
+
+        if all([suit == first_suit for suit in self._suits]):
+            return True
+
+        return False
+
+    @property
+    def _straight(self) -> bool:
+        """Returns a boolean for whether a hand is a straight"""
+        if self._unique_count != 5:
+            return False
+
+        for i in range(len(self._value_ranks) - 1):
+            if self._value_ranks[i] != self._value_ranks[i+1] - 1:
+                return False
+
+        return True
+
+    def _test_royal_flush(self) -> bool:
+        """tests for a hand being a royal flush, and updates hand type if true"""
+        if self._flush and self._straight and min(self._value_ranks) == 1:
+            self.hand_type = "Royal Flush"
+            return True
+        return False
+
+    def _test_straight_flush(self) -> bool | tuple[int, None, None, None, None]:
+        """tests for a hand being a straight flush, and updates hand type and kickers if true"""
+        if self._flush and self._straight:
+            self.hand_type = "Straight Flush"
+            self.kickers = (min(self._value_ranks))
+            return True
+        return False
+
+    def _test_two_unique(self) -> bool:
+        """tests for a hand being full house or four of a kind, updates hand type and kickers if true """
+        if self._unique_count != 2:
+            return False
+
+        rank_a = self._unique_ranks[0]
+        rank_b = self._unique_ranks[1]
+        count_a = self._value_ranks.count(rank_a)
+        count_b = self._value_ranks.count(rank_b)
+
+        if count_a == 4:
+            self.hand_type = "Four of a Kind"
+            self.kickers = (rank_a, rank_b)
+            return True
+        if count_b == 4:
+            self.hand_type = "Four of a Kind"
+            self.kickers = (rank_b, rank_a)
+            return True
+        if count_a == 3:
+            self.hand_type = "Full House"
+            self.kickers = (rank_a, rank_b)
+            return True
+        if count_b == 3:
+            self.hand_type = "Full House"
+            self.kickers = (rank_b, rank_a)
+            return True
+
+        raise ValueError(
+            "Two unique card value ranks in hand but not full house or four of a kind")
+
+    def _test_flush(self) -> bool:
+        """updates hand type and kicker if hand is a flush"""
+        if self._flush:
+            self.hand_type = "Flush"
+            self.kickers = (rank for rank in self._value_ranks)
+            return True
+        return False
+
+    def _test_straight(self) -> bool:
+        """updates hand type and kicker if hand is a straight"""
+        if self._straight:
+            self.hand_type = "Straight"
+            self.kickers = (min(self._value_ranks))
+            return True
+        return False
+
+    def _test_three_unique(self) -> bool:
+        """tests for a hand being two pair or three of a kind, updates hand type and kickers if true"""
+        if self._unique_count != 3:
+            return False
+
+        rank_a = self._unique_ranks[0]
+        rank_b = self._unique_ranks[1]
+        rank_c = self._unique_ranks[2]
+
+        count_a = self._value_ranks.count(rank_a)
+        count_b = self._value_ranks.count(rank_b)
+        count_c = self._value_ranks.count(rank_c)
+
+        if count_a == 3:
+            self.hand_type = "Three of a Kind"
+            self.kickers = (rank_a, rank_b, rank_c)
+            return True
+        if count_b == 3:
+            self.hand_type = "Three of a Kind"
+            self.kickers = (rank_b, rank_a, rank_c)
+            return True
+        if count_c == 3:
+            self.hand_type = "Three of a Kind"
+            self.kickers = (rank_c, rank_a, rank_b)
+            return True
+
+        if count_a == count_b == 2:
+            self.hand_type = "Two Pair"
+            self.kickers = (rank_a, rank_b, rank_c)
+            return True
+        if count_a == count_c == 2:
+            self.hand_type = "Two Pair"
+            self.kickers = (rank_a, rank_c, rank_b)
+            return True
+        if count_b == count_c == 2:
+            self.hand_type = "Two Pair"
+            self.kickers = (rank_b, rank_c, rank_a)
+            return True
+
+        raise ValueError(
+            "Three unique card value ranks in hand but not three of a kind or two pair")
+
+    def _test_pair(self) -> bool:
+        """tests for a hand being a pair, updates hand type and kickers if true"""
+        if self._unique_count != 4:
+            return False
+
+        duplicate_ranks = [
+            rank for rank in self._value_ranks if self._value_ranks.count(rank) == 2]
+        if len(duplicate_ranks) == 0:
+            raise ValueError(
+                "four unique card value ranks in hand but no pairs found")
+        if len(duplicate_ranks) >= 2:
+            raise ValueError(
+                "four unique card value ranks in hand but multiple pairs found")
+
+        self.hand_type = "Pair"
+        self.kickers = (duplicate_ranks[0], rank for rank in self._value_ranks if rank != duplicate_ranks[0])
+        return True
+
+    def _test_high_card(self) -> bool:
+        """tests for a hand being a high card, updates hand type and kickers if true"""
+
+        if self._unique_count != 5:
+            return False
+
+        self.hand_type = "High Card"
+        self.kickers = (rank for rank in self._value_ranks)
+        return True
+
+    def _find_type(self) -> None:
+        """updates self.hand_type and self.kickers with correct information"""
+        if self._test_royal_flush():
+            return None
+        if self._test_straight_flush():
+            return None
+        if self._test_two_unique():
+            return None
+        if self._test_flush():
+            return None
+        if self._test_straight():
+            return None
+        if self._test_three_unique():
+            return None
+        if self._test_pair():
+            return None
+        if self._test_high_card():
+            return None
+
+        raise RuntimeError("The hand was not identified as any hand type")
+
+    def _get_score(self) -> tuple[object]:
+        """Returns the score information for a hand"""
+        pass
+
+
+class Score:
+    """A helper class that stores a hand's scoring information"""
+
+    def __init__(self, hand_type: str, kickers: tuple[int] | None):
+        """Initialises an instance of a score"""
+        self.hand_type = hand_type
+        self.kickers = kickers
+
+        # validate inputs
+        if not isinstance(hand_type, str):
+            raise TypeError("hand type must be a string")
+        if not isinstance(kickers, tuple) and kickers is not None:
+            raise TypeError("kickers must be a tuple or None")
+
+        if hand_type not in HAND_TYPES_RANKED.keys():
+            raise ValueError("hand type not found in valid hand types")
+        if len(kickers) > 5:
+            raise ValueError("Cannot have more than 5 kickers")
+        if len(kickers) == 0:
+            raise ValueError(
+                "cannot have empty kickers tuple, use None instead")
+
+
+##############################
+
 # Thoughts:
-    # create a dealer class (player_list, deck) ### Done
-        # deal_pockets gives a pocket to every active player ### Done
-        # requires player class to have get_pockets, use their index to retrieve from dealt cards ### Done
-        # requires player class to have active attribute ### Done
-
-        # deal_to_table adds appropriate number of cards to table
-        # requires table card getter method ### Done
-
     # create CardGroup scorer method
 
     # create temporary card groups (pocket + table)
@@ -452,20 +684,7 @@ class Dealer:
 
     # dealer nuts
 
-
-def deal_to_table(remaining_deck: list[tuple], burnt_cards: list[tuple], table: list[tuple]) -> list[tuple]:
-    """Deals the next stage of the game to the table"""
-    if len(table) == 0:
-        table = deal_flop(remaining_deck, burnt_cards)
-    elif len(table) == FLOP_COUNT:
-        table = deal_turn(remaining_deck, burnt_cards, table)
-    elif len(table) == TURN_COUNT:
-        table = deal_river(remaining_deck, burnt_cards, table)
-    else:
-        raise ValueError(
-            "Cannot deal to a table of this length")
-
-    return table
+##############################
 
 
 macro_rankings = {"Royal Flush": 1,
@@ -506,8 +725,6 @@ values_described = {14: "Ace",
                     4: "4",
                     3: "3",
                     2: "2"}
-
-# Find what type of hand a set of 5 cards is
 
 
 def find_type(hand: list):
