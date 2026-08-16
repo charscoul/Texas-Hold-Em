@@ -464,10 +464,12 @@ class Hand(CardGroup):
         self._suits = [card.suit for card in self.cards]
 
         self._unique_ranks = unique_list(self._value_ranks)
-        self._unique_count = len(unique_list)
+        self._unique_count = len(self._unique_ranks)
 
+        #set and update hand details
         self.hand_type = None
         self.kickers = None
+        self._find_type()
 
     @property
     def _flush(self) -> bool:
@@ -540,7 +542,8 @@ class Hand(CardGroup):
         """updates hand type and kicker if hand is a flush"""
         if self._flush:
             self.hand_type = "Flush"
-            self.kickers = (rank for rank in self._value_ranks)
+            kickers_list = [rank for rank in self._value_ranks]
+            self.kickers = tuple(kickers_list)
             return True
         return False
 
@@ -600,7 +603,8 @@ class Hand(CardGroup):
             return False
 
         duplicate_ranks = [
-            rank for rank in self._value_ranks if self._value_ranks.count(rank) == 2]
+            rank for rank in self._unique_ranks if self._value_ranks.count(rank) == 2]
+        
         if len(duplicate_ranks) == 0:
             raise ValueError(
                 "four unique card value ranks in hand but no pairs found")
@@ -609,7 +613,9 @@ class Hand(CardGroup):
                 "four unique card value ranks in hand but multiple pairs found")
 
         self.hand_type = "Pair"
-        self.kickers = (duplicate_ranks[0], rank for rank in self._value_ranks if rank != duplicate_ranks[0])
+        kickers_list = [rank for rank in self._value_ranks if rank != duplicate_ranks[0]]
+        kickers_list.insert(0, duplicate_ranks[0])
+        self.kickers = tuple(kickers_list)
         return True
 
     def _test_high_card(self) -> bool:
@@ -619,7 +625,8 @@ class Hand(CardGroup):
             return False
 
         self.hand_type = "High Card"
-        self.kickers = (rank for rank in self._value_ranks)
+        kickers_list = [rank for rank in self._value_ranks]
+        self.kickers = tuple(kickers_list)
         return True
 
     def _find_type(self) -> None:

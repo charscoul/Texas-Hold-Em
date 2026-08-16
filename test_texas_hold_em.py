@@ -985,16 +985,16 @@ class TestHand:
     """testing unique values"""
 
     def test_unique_values(self, ex_flush, ex_foak, ex_full_house, ex_high_card, ex_pair, ex_royal_flush, ex_straight, ex_straight_flush, ex_toak, ex_two_pair):
-        assert ex_flush._unique_values == 5
-        assert ex_foak._unique_values == 2
-        assert ex_full_house._unique_values == 2
-        assert ex_high_card._unique_values == 5
-        assert ex_pair._unique_values == 4
-        assert ex_royal_flush._unique_values == 5
-        assert ex_straight._unique_values == 5
-        assert ex_straight_flush._unique_values == 5
-        assert ex_toak._unique_values == 3
-        assert ex_two_pair._unique_values == 3
+        assert ex_flush._unique_count == 5
+        assert ex_foak._unique_count == 2
+        assert ex_full_house._unique_count == 2
+        assert ex_high_card._unique_count == 5
+        assert ex_pair._unique_count == 4
+        assert ex_royal_flush._unique_count == 5
+        assert ex_straight._unique_count == 5
+        assert ex_straight_flush._unique_count == 5
+        assert ex_toak._unique_count == 3
+        assert ex_two_pair._unique_count == 3
 
     """testing straight status"""
 
@@ -1010,6 +1010,37 @@ class TestHand:
         assert ex_toak._straight is False
         assert ex_two_pair._straight is False
 
-    """testing straight flush status"""
+    """testing hand type and kickers"""
 
-    # use the thing with the brackets
+    def test_type_and_kickers(self, ex_flush, ex_foak, ex_full_house, ex_high_card, ex_pair, ex_royal_flush, ex_straight, ex_straight_flush, ex_toak, ex_two_pair):
+        assert ex_flush.hand_type == "Flush"
+        assert ex_flush.kickers == (2, 3, 5, 6, 13)
+
+        assert ex_foak.hand_type == "Four of a Kind"
+        assert ex_foak.kickers == (4, 12)
+
+        assert ex_full_house.hand_type == "Full House"
+        assert ex_full_house.kickers == (4, 12)
+
+        assert ex_high_card.hand_type == "High Card"
+        assert ex_high_card.kickers == (3, 4, 5, 8, 12)
+
+        assert ex_pair.hand_type == "Pair"
+        assert ex_pair.kickers == (12, 3, 4, 8)
+
+        assert ex_royal_flush.hand_type == "Royal Flush"
+        assert ex_royal_flush.kickers == None
+
+        assert ex_straight.hand_type == "Straight"
+        assert ex_straight.kickers == (1)
+
+        assert ex_straight_flush.hand_type == "Straight Flush"
+        assert ex_straight_flush.kickers == (2)
+
+        assert ex_toak.hand_type == "Three of a Kind"
+        assert ex_toak.kickers == (4,8,12)
+
+        assert ex_two_pair.hand_type == "Two Pair"
+        assert ex_two_pair.kickers == (4, 12, 8)
+
+
