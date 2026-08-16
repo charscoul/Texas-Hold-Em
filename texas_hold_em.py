@@ -694,25 +694,94 @@ def compare_hands(hand_0: Hand, hand_1: Hand) -> int:
     return DRAW_PLACEHOLDER
 
 
+def make_proxy_pockets(hidden_cards: list[Card]) -> list[Pocket]:
+    """returns a list of possible pockets from the non-public view cards
+    will assist in finding the nuts"""
+
+    return [Pocket([hidden_cards[i], hidden_cards[j]]) for i in range(
+        len(hidden_cards)) for j in range(len(hidden_cards)) if i < j]
+
+
+def make_all_hands(table: Table, pocket: Pocket) -> list[Hand]:
+    """returns a list of all hand combinations from a table and other cards
+
+    when used by a player, the other cards will be their pocket.
+    when used by a dealer, the other cards will be every card not in public view"""
+
+    # validate inputs
+    if not isinstance(table, Table):
+        raise TypeError("the table must be of type Table")
+    if not isinstance(pocket, Pocket):
+        raise TypeError("the other cards must be of type Pocket")
+
+    outputs = []
+    # if table is a flop:
+    if len(table.cards) == FLOP_SIZE:
+        hand = Hand(table.cards + pocket.cards)
+        outputs.append(hand)
+
+    # if table is a turn
+    elif len(table.cards) == TURN_SIZE:
+        # Add one card from pocket
+        for i in range(POCKET_SIZE):
+            hand = Hand([table.cards[0], table.cards[1], table.cards[2],
+                        table.cards[3], pocket.cards[i]])
+            outputs.append(hand)
+
+        # remove card from table and add whole pocket
+        TURN_INDICES = [0, 1, 2, 3]
+        for i in range(TURN_SIZE):
+            table_list = [table.cards[turn_index]
+                          for turn_index in TURN_INDICES if turn_index != i]
+            hand = Hand(table_list + pocket.cards)
+            outputs.append(hand)
+
+    # if table is a river
+    elif len(table.cards) == RIVER_SIZE:
+        # add no cards from pocket
+        outputs.append(Hand(table.cards))
+
+        # remove card from table and add card from pocket
+        RIVER_INDICES = [0, 1, 2, 3, 4]
+        for i in range(POCKET_SIZE):
+            for j in range(RIVER_SIZE):
+                table_list = [table.cards[river_index]
+                              for river_index in RIVER_INDICES if river_index != j]
+                table_list.append(pocket.cards[i])
+                hand = Hand(table_list)
+                outputs.append(hand)
+
+        # remove two cards from table and add whole pocket
+        for i in range(RIVER_SIZE):
+            for j in range(RIVER_SIZE):
+                if i < j:
+                    table_list = [table.cards[river_index]
+                                  for river_index in RIVER_INDICES if river_index != i and river_index != j]
+                    hand = Hand(table_list + pocket.cards)
+                    outputs.append(hand)
+
+    return outputs
+
 ##############################
 
 # Thoughts:
-    # create a public function to compare two hands, returning the winning one
-    # create a public function to create a list of possible hands from a given table and other cards (a pocket or all non-table cards)
-    # create a Player method to :
-    # create all possible hands, given the table and pocket
-    # find the players strongest hand,
-    # store the player's best hand as an attribute
-    # create a dealer method to:
-    # update all stored player's best hands
-    # edit the dealer deal_to_table method to call hand update
-    # create a dealer method to:
-    # find the winner based on best hands
-    # create a dealer method to:
-    # create all possible hands, given table
-    # find the nuts
+# create a public function to compare two hands, returning the winning one ### Done
+# create a public function to create a list of possible hands from a given table and other cards (a pocket or all non-table cards)
+# create a Player method to :
+# create all possible hands, given the table and pocket
+# find the players strongest hand,
+# store the player's best hand as an attribute
+# create a dealer method to:
+# update all stored player's best hands
+# edit the dealer deal_to_table method to call hand update
+# create a dealer method to:
+# find the winner based on best hands
+# create a dealer method to:
+# create all possible hands, given table
+# find the nuts
 
 ##############################
+
 
 def best_hand(pocket: list, table: list, draw=False):
     available_cards = []

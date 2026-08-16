@@ -3,7 +3,7 @@ import pytest
 
 from support.testing_util import player_chooses
 
-from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, DRAW_PLACEHOLDER, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, Dealer, Hand, compare_hands
+from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, DRAW_PLACEHOLDER, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, Dealer, Hand, compare_hands, make_all_hands, make_proxy_pockets
 
 
 """Standard function tests"""
@@ -72,6 +72,11 @@ def two_of_hearts() -> Card:
 @pytest.fixture()
 def three_of_hearts() -> Card:
     return Card("3", "H")
+
+
+@pytest.fixture()
+def three_of_clubs() -> Card:
+    return Card("3", "C")
 
 
 @pytest.fixture()
@@ -192,6 +197,11 @@ def ladies(test_names, no_indexes) -> list[Player]:
 @pytest.fixture()
 def pocket_aces(ace_of_clubs, ace_of_hearts) -> Pocket:
     return Pocket([ace_of_hearts, ace_of_clubs])
+
+
+@pytest.fixture
+def exclusive_pocket(three_of_clubs, nine_of_hearts):
+    return Pocket([three_of_clubs, nine_of_hearts])
 
 
 @pytest.fixture()
@@ -1095,3 +1105,63 @@ def test_compare_drawing_hands(ex_straight, ex_drawing_straight):
 
 def test_compare_identical_hands(ex_straight):
     assert compare_hands(ex_straight, ex_straight) == DRAW_PLACEHOLDER
+
+
+"""Testing make_all_hands()"""
+
+
+def test_hands_at_flop(exclusive_pocket, basic_flop):
+    hands = make_all_hands(basic_flop, exclusive_pocket)
+    assert len(hands) == 1
+    assert unique_list(hands) == hands
+
+
+def test_hands_at_turn(exclusive_pocket, basic_turn):
+    hands = make_all_hands(basic_turn, exclusive_pocket)
+    assert len(hands) == 6
+    assert unique_list(hands) == hands
+
+
+def test_hands_at_river(exclusive_pocket, basic_river):
+    hands = make_all_hands(basic_river, exclusive_pocket)
+    assert len(hands) == 21
+    assert unique_list(hands) == hands
+
+
+"""testing proxy pockets"""
+
+
+def test_proxy_at_flop():
+    deck = Deck()
+    deck.cards.pop(12)
+    deck.cards.pop(18)
+    deck.cards.pop(35)
+
+    proxies = make_proxy_pockets(deck.cards)
+    assert unique_list(proxies) == proxies
+    assert len(proxies) == 1176
+
+
+def test_proxy_at_turn():
+    deck = Deck()
+    deck.cards.pop(12)
+    deck.cards.pop(18)
+    deck.cards.pop(35)
+    deck.cards.pop(-5)
+
+    proxies = make_proxy_pockets(deck.cards)
+    assert unique_list(proxies) == proxies
+    assert len(proxies) == 1128
+
+
+def test_proxy_at_river():
+    deck = Deck()
+    deck.cards.pop(12)
+    deck.cards.pop(18)
+    deck.cards.pop(35)
+    deck.cards.pop(-5)
+    deck.cards.pop(22)
+
+    proxies = make_proxy_pockets(deck.cards)
+    assert unique_list(proxies) == proxies
+    assert len(proxies) == 1081
