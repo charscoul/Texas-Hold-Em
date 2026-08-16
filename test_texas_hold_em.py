@@ -3,7 +3,7 @@ import pytest
 
 from support.testing_util import player_chooses
 
-from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, Dealer, Hand
+from texas_hold_em import unique_list, default_rows, MIN_NAME_LENGTH, MAX_NAME_LENGTH, DRAW_PLACEHOLDER, Card, Deck, CardGroup, Pocket, Table, Player, HumanPlayer, Dealer, Hand, compare_hands
 
 
 """Standard function tests"""
@@ -77,6 +77,11 @@ def three_of_hearts() -> Card:
 @pytest.fixture()
 def three_of_spades() -> Card:
     return Card("3", "S")
+
+
+@pytest.fixture()
+def three_of_diamonds() -> Card:
+    return Card("3", "D")
 
 
 @pytest.fixture()
@@ -255,6 +260,21 @@ def ex_pair(jack_of_clubs, three_of_spades, seven_of_diamonds, queen_of_hearts, 
 @pytest.fixture()
 def ex_high_card(jack_of_clubs, three_of_spades, seven_of_diamonds, queen_of_hearts, ten_of_clubs):
     return Hand([jack_of_clubs, three_of_spades, seven_of_diamonds, queen_of_hearts, ten_of_clubs])
+
+
+@pytest.fixture()
+def ex_worse_full_house(jack_of_clubs, three_of_spades, jack_of_hearts, three_of_diamonds, three_of_hearts):
+    return Hand([jack_of_clubs, three_of_spades, jack_of_hearts, three_of_diamonds, three_of_hearts])
+
+
+@pytest.fixture()
+def ex_better_flush(ten_of_hearts, three_of_hearts, queen_of_hearts, king_of_hearts, nine_of_hearts):
+    return Hand([ten_of_hearts, three_of_hearts, queen_of_hearts, nine_of_hearts, king_of_hearts])
+
+
+@pytest.fixture()
+def ex_drawing_straight(ten_of_clubs, jack_of_diamonds, queen_of_hearts, king_of_hearts, ace_of_clubs):
+    return Hand([ten_of_clubs, jack_of_diamonds, queen_of_hearts, ace_of_clubs, king_of_hearts])
 
 
 """Testing Classes"""
@@ -1032,15 +1052,46 @@ class TestHand:
         assert ex_royal_flush.kickers == None
 
         assert ex_straight.hand_type == "Straight"
-        assert ex_straight.kickers == (1)
+        assert ex_straight.kickers == 1
 
         assert ex_straight_flush.hand_type == "Straight Flush"
-        assert ex_straight_flush.kickers == (2)
+        assert ex_straight_flush.kickers == 2
 
         assert ex_toak.hand_type == "Three of a Kind"
-        assert ex_toak.kickers == (4,8,12)
+        assert ex_toak.kickers == (4, 8, 12)
 
         assert ex_two_pair.hand_type == "Two Pair"
         assert ex_two_pair.kickers == (4, 12, 8)
 
 
+"""Testing compare_hands()"""
+
+
+def test_compare_not_hands(ten_of_hearts, jack_of_diamonds, queen_of_hearts, king_of_hearts, ace_of_clubs, ex_straight):
+    with pytest.raises(TypeError):
+        compare_hands((ten_of_hearts, jack_of_diamonds, queen_of_hearts,
+                      king_of_hearts, ace_of_clubs), ex_straight)
+
+
+def test_compare_adjacent_hands(ex_straight, ex_flush):
+    assert compare_hands(ex_straight, ex_flush) == 1
+
+
+def test_compare_gap_hands(ex_foak, ex_two_pair):
+    assert compare_hands(ex_foak, ex_two_pair) == 0
+
+
+def test_compare_first_kicker(ex_full_house, ex_worse_full_house):
+    assert compare_hands(ex_worse_full_house, ex_full_house) == 1
+
+
+def test_compare_last_kicker(ex_better_flush, ex_flush):
+    assert compare_hands(ex_better_flush, ex_flush) == 0
+
+
+def test_compare_drawing_hands(ex_straight, ex_drawing_straight):
+    assert compare_hands(ex_drawing_straight, ex_straight) == DRAW_PLACEHOLDER
+
+
+def test_compare_identical_hands(ex_straight):
+    assert compare_hands(ex_straight, ex_straight) == DRAW_PLACEHOLDER

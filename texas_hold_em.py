@@ -59,6 +59,7 @@ RIVER_SIZE = 5
 TABLE_SIZES = [FLOP_SIZE, TURN_SIZE, RIVER_SIZE]
 MIN_NAME_LENGTH = 3
 MAX_NAME_LENGTH = 8
+DRAW_PLACEHOLDER = 10
 
 """Section 2: Defining card-based classes"""
 
@@ -466,10 +467,12 @@ class Hand(CardGroup):
         self._unique_ranks = unique_list(self._value_ranks)
         self._unique_count = len(self._unique_ranks)
 
-        #set and update hand details
+        # set and update hand details
         self.hand_type = None
         self.kickers = None
         self._find_type()
+
+        self.type_rank = HAND_TYPES_RANKED[self.hand_type]
 
     @property
     def _flush(self) -> bool:
@@ -504,7 +507,8 @@ class Hand(CardGroup):
         """tests for a hand being a straight flush, and updates hand type and kickers if true"""
         if self._flush and self._straight:
             self.hand_type = "Straight Flush"
-            self.kickers = (min(self._value_ranks))
+            top_of_straight = min(self._value_ranks)
+            self.kickers = top_of_straight
             return True
         return False
 
@@ -551,7 +555,8 @@ class Hand(CardGroup):
         """updates hand type and kicker if hand is a straight"""
         if self._straight:
             self.hand_type = "Straight"
-            self.kickers = (min(self._value_ranks))
+            top_of_straight = min(self._value_ranks)
+            self.kickers = top_of_straight
             return True
         return False
 
@@ -604,7 +609,7 @@ class Hand(CardGroup):
 
         duplicate_ranks = [
             rank for rank in self._unique_ranks if self._value_ranks.count(rank) == 2]
-        
+
         if len(duplicate_ranks) == 0:
             raise ValueError(
                 "four unique card value ranks in hand but no pairs found")
@@ -613,7 +618,8 @@ class Hand(CardGroup):
                 "four unique card value ranks in hand but multiple pairs found")
 
         self.hand_type = "Pair"
-        kickers_list = [rank for rank in self._value_ranks if rank != duplicate_ranks[0]]
+        kickers_list = [
+            rank for rank in self._value_ranks if rank != duplicate_ranks[0]]
         kickers_list.insert(0, duplicate_ranks[0])
         self.kickers = tuple(kickers_list)
         return True
@@ -655,360 +661,58 @@ class Hand(CardGroup):
         pass
 
 
-class Score:
-    """A helper class that stores a hand's scoring information"""
+def compare_hands(hand_0: Hand, hand_1: Hand) -> int:
+    """returns 0 or 1, depending on which hand scores more highly
 
-    def __init__(self, hand_type: str, kickers: tuple[int] | None):
-        """Initialises an instance of a score"""
-        self.hand_type = hand_type
-        self.kickers = kickers
+    If a draw, returns DRAW_PLACEHOLDER"""
+    # validate inputs:
+    if not isinstance(hand_0, Hand):
+        raise TypeError("the first hand must be of type Hand")
+    if not isinstance(hand_1, Hand):
+        raise TypeError("the second hand must be of type Hand")
 
-        # validate inputs
-        if not isinstance(hand_type, str):
-            raise TypeError("hand type must be a string")
-        if not isinstance(kickers, tuple) and kickers is not None:
-            raise TypeError("kickers must be a tuple or None")
+    # compare hand types
+    if hand_0.type_rank < hand_1.type_rank:
+        return 0
+    if hand_0.type_rank > hand_1.type_rank:
+        return 1
 
-        if hand_type not in HAND_TYPES_RANKED.keys():
-            raise ValueError("hand type not found in valid hand types")
-        if len(kickers) > 5:
-            raise ValueError("Cannot have more than 5 kickers")
-        if len(kickers) == 0:
-            raise ValueError(
-                "cannot have empty kickers tuple, use None instead")
+    # compare kickers
+    if isinstance(hand_0.kickers, int):
+        if hand_0.kickers < hand_1.kickers:
+            return 0
+        if hand_0.kickers > hand_1.kickers:
+            return 1
+
+    else:
+        for i in range(len(hand_0.kickers)):
+            if hand_0.kickers[i] < hand_1.kickers[i]:
+                return 0
+            if hand_0.kickers[i] > hand_1.kickers[i]:
+                return 1
+
+    return DRAW_PLACEHOLDER
 
 
 ##############################
 
 # Thoughts:
-    # create CardGroup scorer method
-
-    # create temporary card groups (pocket + table)
-        # card group compare
-        # find best hand and all that
-
-    # dealer compare (find winner)
-
-    # dealer nuts
+    # create a public function to compare two hands, returning the winning one
+    # create a public function to create a list of possible hands from a given table and other cards (a pocket or all non-table cards)
+    # create a Player method to :
+    # create all possible hands, given the table and pocket
+    # find the players strongest hand,
+    # store the player's best hand as an attribute
+    # create a dealer method to:
+    # update all stored player's best hands
+    # edit the dealer deal_to_table method to call hand update
+    # create a dealer method to:
+    # find the winner based on best hands
+    # create a dealer method to:
+    # create all possible hands, given table
+    # find the nuts
 
 ##############################
-
-
-macro_rankings = {"Royal Flush": 1,
-                  "Straight Flush": 2,
-                  "Four of a Kind": 3,
-                  "Full House": 4,
-                  "Flush": 5,
-                  "Straight": 6,
-                  "Three of a Kind": 7,
-                  "Two Pair": 8,
-                  "Pair": 9,
-                  "High Card": 10}
-
-values_scored = {14: 1,
-                 13: 2,
-                 12: 3,
-                 11: 4,
-                 10: 5,
-                 9: 6,
-                 8: 7,
-                 7: 8,
-                 6: 9,
-                 5: 10,
-                 4: 11,
-                 3: 12,
-                 2: 13}
-
-values_described = {14: "Ace",
-                    13: "King",
-                    12: "Queen",
-                    11: "Jack",
-                    10: "10",
-                    9: "9",
-                    8: "8",
-                    7: "7",
-                    6: "6",
-                    5: "5",
-                    4: "4",
-                    3: "3",
-                    2: "2"}
-
-
-def find_type(hand: list):
-    value_strings = []
-    suits = []
-    values = []
-
-    for card in hand:
-        value_strings.append(card[0])
-        suits.append(card[1])
-
-    # convert value strings to numbers for ease of manipulation
-    for value in value_strings:
-        if value == "J":
-            values.append(11)
-        elif value == "Q":
-            values.append(12)
-        elif value == "K":
-            values.append(13)
-        elif value == "A":
-            values.append(14)
-        else:
-            values.append(int(value))
-
-    values = sorted(values)
-
-    # check for flush status
-    first_suit = suits[0]
-    flush_status = True
-    for suit in suits:
-        if suit != first_suit:
-            flush_status = False
-            break
-
-    # check for straight status
-    unique_values = unique_list(values)
-    unique_values.sort()
-    unique_no = len(unique_values)
-
-    straight_status = True
-    highest = max(values)
-    lowest = min(values)
-    if highest - lowest != 4 or unique_no != 5:
-        straight_status = False
-
-    # identify straight flush/ royal flush
-    if flush_status == True and straight_status == True:
-        high_card_value = max(values)
-        if high_card_value == 14:
-            return ("Royal Flush")
-        else:
-            return ("Straight Flush", high_card_value)
-
-    # identify straight
-    elif straight_status == True:
-        high_card_value = max(values)
-        return ("Straight", high_card_value)
-
-    # identify flush
-    elif flush_status == True:
-        return ("Flush", values)
-
-    # check for four of a kind / full house
-    if unique_no == 2:
-        value_a = unique_values[0]
-        value_b = unique_values[1]
-        count_a = values.count(value_a)
-        count_b = values.count(value_b)
-
-        if count_a == 4:
-            return ("Four of a Kind", value_a)
-        elif count_b == 4:
-            return ("Four of a Kind", value_b)
-        elif count_a == 3:
-            return ("Full House", value_a, value_b)
-        elif count_b == 3:
-            return ("Full House", value_b, value_a)
-        else:
-            print(
-                "Error: 2 contained values but not full house or four of a kind, check code")
-            print(hand)
-
-    # check for 2 pair / three of a kind
-    elif unique_no == 3:
-        value_a = unique_values[0]
-        value_b = unique_values[1]
-        value_c = unique_values[2]
-
-        count_a = values.count(value_a)
-        count_b = values.count(value_b)
-        count_c = values.count(value_c)
-
-        if count_a == 3:
-            return ("Three of a Kind", value_a, value_c, value_b)
-        elif count_b == 3:
-            return ("Three of a Kind", value_b, value_c, value_a)
-        elif count_c == 3:
-            return ("Three of a Kind", value_c, value_b, value_a)
-
-        elif count_a == 2:
-            if count_b == 2:
-                return ("Two Pair", value_b, value_a, value_c)
-            elif count_c == 2:
-                return ("Two Pair", value_c, value_a, value_b)
-            else:
-                print(
-                    "Error: 3 contained values including one pair, but not 2 pair, check code")
-                print(hand)
-
-        elif count_b == 2:
-            if count_c == 2:
-                return ("Two Pair", value_c, value_b, value_a)
-            else:
-                print(
-                    "Error: 3 contained values including one pair, but not 2 pair, check code")
-                print(hand)
-
-        elif count_c == 2:
-            print(
-                "Error: 3 contained values including one pair, but not 2 pair, check code")
-            print(hand)
-
-        else:
-            print("Error: 3 contained values but not 3 of a kind or 2 pair, check code")
-            print(hand)
-
-    # check for pair
-    elif unique_no == 4:
-        value_a = unique_values[0]
-        value_b = unique_values[1]
-        value_c = unique_values[2]
-        value_d = unique_values[3]
-
-        count_a = values.count(value_a)
-        count_b = values.count(value_b)
-        count_c = values.count(value_c)
-        count_d = values.count(value_d)
-
-        if count_a == 2:
-            return ("Pair", value_a, [value_d, value_c, value_b])
-        elif count_b == 2:
-            return ("Pair", value_b, [value_d, value_c, value_a])
-        elif count_c == 2:
-            return ("Pair", value_c, [value_d, value_b, value_a])
-        elif count_d == 2:
-            return ("Pair", value_d, [value_c, value_b, value_a])
-        else:
-            print("Error: 4 contained values not including any pairs, check code")
-            print(hand)
-
-    # high card
-    elif unique_no == 5:
-        return ("High Card", values)
-
-    else:
-        print("Error: not 2,3,4 or 5 unique values???? check code")
-
-# Score hand
-
-
-def score_hand(hand: list):
-    type_tuple = find_type(hand)
-    hand_type = type_tuple[0]
-    type_score = macro_rankings[hand_type]
-
-    if hand_type == "Royal Flush":
-        description = "Royal Flush"
-        return (description, type_score, np.nan, np.nan, np.nan, np.nan, np.nan)
-
-    elif hand_type in ["Straight Flush", "Four of a Kind", "Straight"]:
-        high_card_value = type_tuple[1]
-        high_card_score = values_scored[high_card_value]
-
-        high_card_described = values_described[high_card_value]
-        if "Straight" in hand_type:
-            description = f"{high_card_described} high {hand_type}"
-        else:
-            description = f"Four {high_card_described}'s"
-
-        return (description, type_score, high_card_score, np.nan, np.nan, np.nan, np.nan)
-
-    elif hand_type == "Full House":
-        three_value = type_tuple[1]
-        two_value = type_tuple[2]
-
-        three_score = values_scored[three_value]
-        two_score = values_scored[two_value]
-
-        three_described = values_described[three_value]
-        two_described = values_described[two_value]
-
-        description = f"Full House with three {three_described}'s and two {two_described}'s"
-        return (description, type_score, three_score, two_score, np.nan, np.nan, np.nan)
-
-    elif hand_type == "Three of a Kind":
-        three_value = type_tuple[1]
-        higher_single_value = type_tuple[2]
-        lower_single_value = type_tuple[3]
-
-        three_score = values_scored[three_value]
-        higher_score = values_scored[higher_single_value]
-        lower_score = values_scored[lower_single_value]
-
-        three_described = values_described[three_value]
-
-        description = f"Three {three_described}'s"
-
-        return (description, type_score, three_score, higher_score, lower_score, np.nan, np.nan)
-
-    elif hand_type in ["Flush", "High Card"]:
-        values = type_tuple[1]
-
-        high_card_value = values[4]
-        high_card_described = values_described[high_card_value]
-
-        if hand_type == "Flush":
-            description = f"{high_card_described} high {hand_type}"
-        else:
-            description = f"{high_card_described} high"
-
-        return (description, type_score, values_scored[values[4]], values_scored[values[3]], values_scored[values[2]], values_scored[values[1]], values_scored[values[0]])
-
-    elif hand_type == "Two Pair":
-        high_pair = type_tuple[1]
-        low_pair = type_tuple[2]
-        last_card = type_tuple[3]
-
-        high_pair_described = values_described[high_pair]
-        low_pair_described = values_described[low_pair]
-
-        high_pair_score = values_scored[high_pair]
-        low_pair_score = values_scored[low_pair]
-        last_card_scored = values_scored[last_card]
-
-        description = f"Two Pair: {high_pair_described}'s and {low_pair_described}'s"
-
-        return (description, type_score, high_pair_score, low_pair_score, last_card_scored, np.nan, np.nan)
-
-    elif hand_type == "Pair":
-        pair_value = type_tuple[1]
-        other_3 = type_tuple[2]
-        next_highest = other_3[0]
-
-        pair_described = values_described[pair_value]
-        next_highest_described = values_described[next_highest]
-
-        description = f"Pair of {pair_described}'s with a {next_highest_described} high"
-
-        pair_score = values_scored[pair_value]
-
-        return (description, type_score, pair_score, values_scored[other_3[0]], values_scored[other_3[1]], values_scored[other_3[2]], np.nan)
-
-# Finding best current hand for specific player
-
-
-def compare_hands(hand_1: list, hand_2: list, draw=False):
-    score_1 = score_hand(hand_1)
-    score_2 = score_hand(hand_2)
-
-    for i in range(5):
-        if score_1[i+1] < score_2[i+1]:
-            if draw == False:
-                return hand_1
-            else:
-                return False, hand_1
-        elif score_1[i+1] > score_2[i+1]:
-            if draw == False:
-                return hand_2
-            else:
-                return False, hand_2
-        else:
-            continue
-    if draw == False:
-        return hand_1
-    else:
-        return True, hand_1, hand_2
-
 
 def best_hand(pocket: list, table: list, draw=False):
     available_cards = []
